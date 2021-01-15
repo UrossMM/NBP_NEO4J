@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 var neo4j = require("neo4j-driver");
 var driver = neo4j.driver(
   "neo4j://localhost:7687",
-  neo4j.auth.basic("neo4j", "noapas123")
+  neo4j.auth.basic("neo4j", "noapas123") // ne brisi
 );
 //const neo4j = require('neo4j-driver')
 
@@ -15,25 +15,24 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.post("/create", function (req, res) {
+app.post("/createZubar", function (req, res) {
   const session = driver.session();
   const body = req.body;
   const cypher =
     //"create (z:Zubar {id: {id}, ime: {ime}, prezime: {prezime}}) RETURN  z";
     //var params = { id: body.id, ime: body.ime, prezime: body.prezime };
-    "create ( z:Zubar {id:'" +
-    body.id +
-    "' , ime:'" +
+    "create ( z:Zubar {ime:'" +
     body.ime +
     "' , prezime:'" +
     body.prezime +
     "' , grad:'" +
     body.grad +
+    "' , telefon:'" +
+    body.telefon +
     "'}) return z";
 
   //console.log(cypher);
   //console.log(params);
-
   session
     .run(cypher)
     .then((result) => {
@@ -44,6 +43,48 @@ app.post("/create", function (req, res) {
       session.close();
       res.json(true);
     });
+});
+
+app.put("/novaUsluga", async (req, res) => {
+  const idZubara = req.body.id;
+  const session = driver.session();
+  const cypher1 =
+    "create (u:Usluga {naziv:$naziv, cena:$cena, opis:$opis, idZubara:$idZubara})";
+  let params1 = {
+    naziv: req.body.naziv,
+    cena: req.body.cena,
+    opis: req.body.opis,
+    idZubara: idZubara,
+  };
+  await session.run(cypher1, params1);
+  session.close();
+  const session2 = driver.session();
+  const cypher2 =
+    "match (z:Zubar) where id(z)=" +
+    idZubara +
+    " match(u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)";
+  //"match (z:Zubar{id:$idZubara}), (u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)";
+  //console.log(cypher2);
+  //console.log(idZubara);
+  await session2.run(cypher2, { idZubara: idZubara });
+  session2.close();
+  res.json("Usluga je dodata");
+});
+
+app.get("/pretraziPoGradu", async (req, res) => {
+  const session = driver.session();
+  const zadatiGrad = req.body.grad;
+  let cypher = "match (z:Zubar{grad:$grad}) return z";
+  let result = await session.run(cypher, { grad: zadatiGrad });
+  session.close();
+  console.log(result.records);
+  if (result.records.length == 0)
+    res.json("Nije pronadjen nijedan zubar u tom gradu.");
+  let zubari = [];
+  result.records.forEach((r) => {
+    zubari.push(r._fields[0].properties);
+  });
+  res.json(zubari);
 });
 
 app.get("/vratiTermineZubara", function (req, res) {
