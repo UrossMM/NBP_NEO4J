@@ -606,6 +606,44 @@ app.post("/ostaviKomentar", function (req, res) {
       //return driver.close();
     });
 });
+//Korsinik ostavlja komentar na pitanje
+app.post("/ostaviKomentarNaPitanje", function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  let idKorisnika = req.body.idKorisnika;
+  let komentar = req.body.komentar;
+  const cypher =
+    "MATCH (p:Pitanje),(k:Korisnik) WHERE p.id='" +
+    idPitanja +
+    "'AND k.id='" +
+    idKorisnika +
+    "'" +
+    "CREATE (k)-[:OSTAVIO]->(kom:Komentar {komentar:'" +
+    komentar +
+    "'})-[:KOMENTAR_NA]->(p)";
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
 //Vraca komentare o zubaru kako bi se prikazali na zubarevoj stranici
 app.get("/vratiKomentareOZubaru", function (req, res) {
   const session = driver.session();
@@ -766,6 +804,257 @@ app.post("/vratiPitanjaSaTagovima", function (req, res) {
     .then(() => {
       // Close the Session
       
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//------------TREBA DA SE TESTIRAJU
+//koisnik brise svoje pitanje
+app.post("/obrisiSvojePitanje", function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  let idUlogovanogKorisnika = req.body.idUlogovanog;
+  //MATCH (k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+  const cypher =
+    "MATCH (k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='" +
+    idPitanja +
+    "' AND k.id=\" " +
+    idUlogovanogKorisnika+
+      "\" DETACH DELETE p"+
+    
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//Zubar brise svoj odgovor
+app.post("/obrisiSvojOdgovor", function (req, res) {
+  const session = driver.session();
+  let idOdgovora = req.body.idOdgovora;
+  let idUlogovanogZubara = req.body.idUlogovanogZubara;
+ 
+
+  const cypher =
+    "MATCH (z:Zubar)-[:ODGOVORIO]->(o:Odgovor)-[:ODGOVOR_NA]->(p:Pitanje) WHERE o.id='" +
+    idOdgovora +
+    "' AND z.id=\" " +
+    idUlogovanogZubara+
+      "\" DETACH DELETE o"+
+    
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+//Admin brise bilo koje pitanje
+app.post("/obrisiPitanje", function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+  const cypher =
+    "MATCH (k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='" +
+    idPitanja +
+    "' DETACH DELETE p"+
+    
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//Admin brise bilo koji odgovor
+app.post("/obrisiOdgovor", function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+
+    const cypher =
+    "MATCH (o:Odgovor)-[:ODGOVOR_NA]->(p:Pitanje) WHERE o.id=\"" +
+    idOdgovora +
+      "\" DETACH DELETE o"+
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+//Adminu se vraca lista prijavljenih komentara/pitanja
+app.get("/vratiPrijavljene", function (req, res) {
+  const session = driver.session();
+
+  const cypher =
+    "MATCH (p:Pitanje)<-[:PRIJAVIO] RETURN p" 
+    let pomocniNiz = []
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((pitanjaResult) => {
+
+        //console.log(tagoviResult.get("p.tagoviZaFlitriranje"));
+       
+        tagoviResult.get("p").map(prijavljenoPitanje=>{
+          pomocniNiz.push(prijavljenoPitanje)
+        })
+        
+      });
+     
+      
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      console.log(pomocniNiz)
+      res.json(pomocniNiz);
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//Admin brise prijavu (smatra da je prijava ne osnovana (glupa))
+app.post("/obrisiPriajvu", function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+
+    const cypher =
+    "MATCH (p:Pitanje)<-[prij:PRIJAVIO] DETACH DELETE prij"+
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//Korisnik/Zubar/Student prijavljuje pitanje/komenatr
+app.post("/prijaviPost", function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  let idKorisnika = req.body.idKorisnika;
+  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+
+    const cypher =
+    "MATCH (p:Pitanje),(k:Korisnik) WHERE p.id=\"" +
+    idPitanja +
+    "\ AND k.id =\""+
+    idKorisnika+
+    "\"CREATE (k)-[:PRIJAVIO]->(p)"+
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
       return session.close();
     })
     .then(() => {
