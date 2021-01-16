@@ -45,6 +45,60 @@ app.post("/createZubar", function (req, res) {
     });
 });
 
+app.post("/createStudent", function (req, res) {
+  const session = driver.session();
+  const body = req.body;
+  const cypher =
+    "create ( s:Student {ime:'" +
+    body.ime +
+    "' , prezime:'" +
+    body.prezime +
+    "' , grad:'" +
+    body.grad +
+    "' , telefon:'" +
+    body.telefon +
+    "' , godina:" +
+    body.godina +
+    ", prosek:" +
+    body.prosek +
+    "}) return s";
+
+  session
+    .run(cypher)
+    .then((result) => {
+      console.log(result);
+    })
+
+    .then(() => {
+      session.close();
+      res.json(true);
+    });
+});
+
+app.post("/createKorisnik", function (req, res) {
+  const session = driver.session();
+  const body = req.body;
+  const cypher =
+    "create ( k:Korisnik {ime:'" +
+    body.ime +
+    "' , prezime:'" +
+    body.prezime +
+    "' , telefon:'" +
+    body.telefon +
+    "'}) return k";
+
+  session
+    .run(cypher)
+    .then((result) => {
+      console.log(result);
+    })
+
+    .then(() => {
+      session.close();
+      res.json(true);
+    });
+});
+
 app.put("/novaUsluga", async (req, res) => {
   const idZubara = req.body.id;
   const session = driver.session();
@@ -83,8 +137,194 @@ app.get("/pretraziPoGradu", async (req, res) => {
   let zubari = [];
   result.records.forEach((r) => {
     zubari.push(r._fields[0].properties);
+    // zubari.push(r._fields[0].identity.low);
   });
   res.json(zubari);
+});
+
+app.get("/sviZubari", async (req, res) => {
+  const session = driver.session();
+  let cypher = "match (z:Zubar) return z";
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records.length == 0) res.json("Nije pronadjen nijedan zubar.");
+  let sviZubari = [];
+  result.records.forEach((r) => {
+    sviZubari.push(r._fields[0].properties);
+  });
+  res.json(sviZubari);
+});
+
+app.put("/preporuciZubara", async (req, res) => {
+  const idZubara = req.body.id;
+  const oznaceni = req.body.oznaceni; // niz idjeva
+  oznaceni.forEach(async (o) => {
+    console.log(o);
+    const session = driver.session();
+    let cypher =
+      "match (z:Zubar) where id(z)=" +
+      idZubara +
+      " match(preporucen:Zubar) where id(preporucen)=" +
+      o +
+      " create (z)-[r:PREPORUCUJE]->(preporucen)";
+    await session.run(cypher);
+    session.close();
+  });
+  res.json(true);
+});
+
+app.put("/postaniZainteresovan", async (req, res) => {
+  const idZubara = req.body.idZ;
+  const idStudenta = req.body.idS;
+  const session = driver.session();
+  let cypher =
+    "match(z:Zubar) where id(z)=" +
+    idZubara +
+    " match(s:Student) where id(s)=" +
+    idStudenta +
+    " create (s)-[r:ZAINTERESOVAN_ZA]->(z)";
+  await session.run(cypher);
+  session.close();
+  res.json(true);
+});
+
+app.put("/prihvatiStaziranje", async (req, res) => {
+  const idStudenta = req.body.idS;
+  const idZubara = req.body.idZ;
+  let session = driver.session();
+  let cypher1 =
+    "match(z:Zubar) where id(z)=" +
+    idZubara +
+    " match(s:Student) where id(s)=" +
+    idStudenta +
+    " create (s)-[r:STAZIRA_KOD]->(z)";
+  await session.run(cypher1);
+  session.close();
+  session = driver.session();
+  let cypher2 =
+    "match(z:Zubar) where id(z)=" +
+    idZubara +
+    " match(s:Student) where id(s)=" +
+    idStudenta +
+    " match(s)-[r:ZAINTERESOVAN_ZA]->(z) delete r";
+  await session.run(cypher2);
+  session.close();
+  res.json("Staziranje prihvaceno");
+});
+
+app.post("/posaljiPrivatnuPoruku", async (req, res) => {
+  //logovani student salje svoj ids a kad klikne na zubara kome se obraca uzima se id od tog zubara
+  const idStudenta = req.body.idS;
+  const idZubara = req.body.idZ;
+  const tekst = req.body.tekst;
+  let today = new Date();
+  console.log(today);
+  const vremeSlanja = today;
+  let session = driver.session();
+  //let cypher1 = "create (p:Poruka{tekst:$tekst, vreme:$vreme})";
+  //let params1 = { tekst: req.body.tekst, vreme: vremeSlanja };
+  //await session.run(cypher1, params1);
+  //session.close();
+  let cypher2 =
+    "match (s:Student) where id(s)=" +
+    idStudenta +
+    " match (z:Zubar) where id(z)=" +
+    idZubara +
+    " create (p:Poruka {tekst:'" +
+    tekst +
+    "' , vreme:'" +
+    vremeSlanja +
+    "'}) create (s)-[r:SALJE]->(p) create(z)-[zr:PRIMA]->(p)";
+  console.log(cypher2);
+  await session.run(cypher2);
+  session.close();
+  res.json("Poruka poslata");
+});
+
+app.get("/vratiPrivatnePoruke", async (req, res) => {
+  const idZubara = req.body.telefon;
+  const session = driver.session();
+  let cypher =
+    "match(s:Student)-[r:SALJE]->(p:Poruka)<-[rz:PRIMA]-(z:Zubar{telefon:'" +
+    idZubara +
+    "'}) return p,s";
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records == 0) res.json("Nema poruka.");
+  let toSend = []; //niz objekata obj
+  result.records.forEach((rec) => {
+    let obj = {}; // objekat koji objedinjuje onog ko je poslao poruku i njegovu poruku
+    rec._fields.forEach((f) => {
+      if (f.labels[0] == "Poruka") obj.poruka = f.properties;
+      else obj.student = f.properties;
+    });
+    toSend.push(obj);
+  });
+  res.json(toSend);
+});
+
+app.get("/vratiPraktikante", async (req, res) => {
+  const telefonZubara = req.body.telefon;
+  const session = driver.session();
+  let cypher =
+    "match(s:Student)-[r:STAZIRA_KOD]->(z:Zubar{telefon:'" +
+    telefonZubara +
+    "'}) return s";
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records.length == 0) res.json("Nema praktikanata");
+  let praktikanti = [];
+  result.records.forEach((p) => {
+    praktikanti.push(p._fields[0].properties);
+  });
+  res.json(praktikanti);
+});
+
+app.post("/zakaziTermin", async (req, res) => {
+  const idKorisnika = req.body.telefonK;
+  const idZubara = req.body.telefonZ;
+  const datum = req.body.datum;
+  const imeUsluge = req.body.imeUsluge;
+  /*let cypher =
+    "match(k:Korisnik{telefon:'" +
+    idKorisnika +
+    "'}) match(z:Zubar{telefon:'" +
+    idZubara +
+    "'}) create (k)-[r:ZAKAZI_TERMIN]->(z)";*/
+  let cypher =
+    "match (k:Korisnik{telefon:'" +
+    idKorisnika +
+    "'}) match(z:Zubar{telefon:'" +
+    idZubara +
+    "'}) create (t:Termin {datum:'" +
+    datum +
+    "' , imeUsluge:'" +
+    imeUsluge +
+    "' , potvrdjeno: 'NE'" +
+    "}) create (k)-[r:ZAKAZAO]->(t) create(z)-[zr:IMA]->(t)";
+
+  let session = driver.session();
+  await session.run(cypher);
+  session.close();
+  res.json("Termin rezervisan");
+});
+
+app.get("/vratiZainteresovane", async (req, res) => {
+  const session = driver.session();
+  const idZubara = req.body.id;
+  let cypher = //"match (z:Zubar{id:$id})<-[r:ZAINTERESOVAN_ZA]-(s) return s"; ovako ne moze da se ocita njihpv id
+    "match (z:Zubar)<-[r:ZAINTERESOVAN_ZA]-(s) where id(z)=" +
+    idZubara +
+    " return s";
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records.length == 0) res.json("Nema zainteresovanih.");
+  let zainteresovani = [];
+  result.records.forEach((r) => {
+    zainteresovani.push(r._fields[0].properties);
+  });
+  res.json(zainteresovani);
+  //let cypher= "match (s:Student)-[r:ZAINTERESOVAN_ZA]->(z) return "
 });
 
 app.get("/vratiTermineZubara", function (req, res) {
@@ -118,11 +358,12 @@ app.get("/vratiTermineZubara", function (req, res) {
 });
 app.get("/vratiZainteresovaneStudente", function (req, res) {
   const session = driver.session();
-  let imeZubara = "Zub2";
+  //let imeZubara = "Zub2";
+  const idZubara = req.body.id;
   const cypher =
-    "MATCH (s:Student)-[:ZAINTERESOVAN]->(z:Zubar) WHERE z.ime='" +
-    imeZubara +
-    "'  RETURN s";
+    "MATCH (s:Student)-[:ZAINTERESOVAN_ZA]->(z:Zubar) WHERE id(z)=" +
+    idZubara +
+    "  RETURN s";
   session
     .run(cypher)
     .then((result) => {
@@ -147,7 +388,7 @@ app.get("/vratiZainteresovaneStudente", function (req, res) {
 });
 app.get("/vratiTermineZubaraNeOdobrene", function (req, res) {
   const session = driver.session();
-  let imeZubara = "Zub2";
+  let imeZubara = "Zub2"; //promeni u id ili telefon zubara
   const cypher =
     "MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.ime='" +
     imeZubara +
