@@ -4,20 +4,21 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-var driver = neo4j.driver(
-  'neo4j://localhost:7687',
-  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-);
-
-// const driver = neo4j.driver(
-//   'bolt://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'pass')
+// var driver = neo4j.driver(
+//   'neo4j://localhost:7687',
+//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
 // );
+
+ const driver = neo4j.driver(
+   'bolt://localhost:7687',
+   neo4j.auth.basic('neo4j', 'pass')
+ );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+//-----CREATE-----
 app.post('/createZubar', function (req, res) {
   const session = driver.session();
   const body = req.body;
@@ -125,32 +126,8 @@ app.post('/createOrdinacija', function (req, res) {
       res.json(true);
     });
 });
-app.put('/novaUsluga', async (req, res) => {
-  const idZubara = req.body.id;
-  const session = driver.session();
-  const cypher1 =
-    'create (u:Usluga {naziv:$naziv, cena:$cena, opis:$opis, idZubara:$idZubara})';
-  let params1 = {
-    naziv: req.body.naziv,
-    cena: req.body.cena,
-    opis: req.body.opis,
-    idZubara: idZubara,
-  };
-  await session.run(cypher1, params1);
-  session.close();
-  const session2 = driver.session();
-  const cypher2 =
-    'match (z:Zubar) where id(z)=' +
-    idZubara +
-    ' match(u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)';
-  //"match (z:Zubar{id:$idZubara}), (u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)";
-  //console.log(cypher2);
-  //console.log(idZubara);
-  await session2.run(cypher2, { idZubara: idZubara });
-  session2.close();
-  res.json('Usluga je dodata');
-});
 
+//Ovo nam mozda nece trebati?
 app.get('/pretraziPoGradu/:imeGrada', async (req, res) => {
   const session = driver.session();
   const zadatiGrad = req.params.imeGrada;
@@ -168,38 +145,10 @@ app.get('/pretraziPoGradu/:imeGrada', async (req, res) => {
   res.json(zubari);
 });
 
-app.get('/sviZubari', async (req, res) => {
-  const session = driver.session();
-  let cypher = 'match (z:Zubar) return z';
-  let result = await session.run(cypher);
-  session.close();
-  if (result.records.length == 0) res.json('Nije pronadjen nijedan zubar.');
-  let sviZubari = [];
-  result.records.forEach((r) => {
-    sviZubari.push(r._fields[0].properties);
-  });
-  res.json(sviZubari);
-});
 
-app.put('/preporuciZubara', async (req, res) => {
-  const idZubara = req.body.id;
-  const oznaceni = req.body.oznaceni; // niz idjeva
-  console.log(typeof oznaceni);
-  oznaceni.forEach(async (o) => {
-    console.log(o);
-    const session = driver.session();
-    let cypher =
-      'match (z:Zubar) where id(z)=' +
-      idZubara +
-      ' match(preporucen:Zubar) where id(preporucen)=' +
-      o +
-      ' create (z)-[r:PREPORUCUJE]->(preporucen)';
-    await session.run(cypher);
-    session.close();
-  });
-  res.json(true);
-});
 
+
+//ZA STUDENTA
 app.put('/postaniZainteresovan', async (req, res) => {
   const idZubara = req.body.idZ;
   const idStudenta = req.body.idS;
@@ -215,30 +164,7 @@ app.put('/postaniZainteresovan', async (req, res) => {
   res.json(true);
 });
 
-app.put('/prihvatiStaziranje', async (req, res) => {
-  const idStudenta = req.body.idS;
-  const idZubara = req.body.idZ;
-  let session = driver.session();
-  let cypher1 =
-    'match(z:Zubar) where id(z)=' +
-    idZubara +
-    ' match(s:Student) where id(s)=' +
-    idStudenta +
-    ' create (s)-[r:STAZIRA_KOD]->(z)';
-  await session.run(cypher1);
-  session.close();
-  session = driver.session();
-  let cypher2 =
-    'match(z:Zubar) where id(z)=' +
-    idZubara +
-    ' match(s:Student) where id(s)=' +
-    idStudenta +
-    ' match(s)-[r:ZAINTERESOVAN_ZA]->(z) delete r';
-  await session.run(cypher2);
-  session.close();
-  res.json('Staziranje prihvaceno');
-});
-
+//-------
 app.post('/posaljiPrivatnuPoruku', async (req, res) => {
   //logovani student salje svoj ids a kad klikne na zubara kome se obraca uzima se id od tog zubara
   const idStudenta = req.body.idS;
@@ -306,36 +232,10 @@ app.get('/vratiPraktikante/:telefonZubara', async (req, res) => {
   });
   res.json(praktikanti);
 });
+//--------
 
-app.post('/zakaziTermin', async (req, res) => {
-  const idKorisnika = req.body.telefonK;
-  const idZubara = req.body.telefonZ;
-  const datum = req.body.datum;
-  const imeUsluge = req.body.imeUsluge;
-  /*let cypher =
-    "match(k:Korisnik{telefon:'" +
-    idKorisnika +
-    "'}) match(z:Zubar{telefon:'" +
-    idZubara +
-    "'}) create (k)-[r:ZAKAZI_TERMIN]->(z)";*/
-  let cypher =
-    "match (k:Korisnik{telefon:'" +
-    idKorisnika +
-    "'}) match(z:Zubar{telefon:'" +
-    idZubara +
-    "'}) create (t:Termin {datum:'" +
-    datum +
-    "' , imeUsluge:'" +
-    imeUsluge +
-    "' , potvrdjeno: 'NE'" +
-    '}) create (k)-[r:ZAKAZAO]->(t) create(z)-[zr:IMA]->(t)';
 
-  let session = driver.session();
-  await session.run(cypher);
-  session.close();
-  res.json('Termin rezervisan');
-});
-
+//---------
 app.put('/zaposliZubara', async (req, res) => {
   const idZubara = req.body.telefon;
   const idOrdinacije = req.body.adresa;
@@ -395,278 +295,12 @@ app.get('/vratiZaposlene/:adresaOrdinacije', async (req, res) => {
   });
   res.json(zaposleni);
 });
+//-----------
 
-app.get('/pretraziUslugu/:nazivUsluge', async (req, res) => {
-  const nazivUsluge = req.params.nazivUsluge;
-  const session = driver.session();
-  let cypher =
-    "match(z:Zubar)-[r:NUDI_USLUGU]->(u:Usluga{naziv:'" +
-    nazivUsluge +
-    "'}) return z";
-  let result = await session.run(cypher);
-  if (result.records.length == 0) res.json('Nema takvih usluga');
-  let zubari = [];
-  result.records.forEach((p) => {
-    zubari.push(p._fields[0].properties);
-  });
-  res.json(zubari);
-});
 
-app.get('/pretraziUsluguPoCeni/:nazivUsluge', async (req, res) => {
-  const nazivUsluge = req.params.nazivUsluge;
-  const session = driver.session();
-  let cypher =
-    "match(z:Zubar)-[r:NUDI_USLUGU]->(u:Usluga{naziv:'" +
-    nazivUsluge +
-    "'}) return u,z order by u.cena";
-  /*let result = await session.run(cypher);
-  if (result.records.length == 0) res.json("Nema takvih usluga");
-  let zubari = [];
-  result.records.forEach((p) => {
-    zubari.push(p._fields[0].properties);
-  });
-  res.json(zubari);*/
-  let result = await session.run(cypher);
-  session.close();
-  if (result.records == 0) res.json('Nema poruka.');
-  let toSend = []; //niz objekata obj
-  result.records.forEach((rec) => {
-    let obj = {}; // objekat koji objedinjuje onog ko je poslao poruku i njegovu poruku
-    rec._fields.forEach((f) => {
-      if (f.labels[0] == 'Usluga') obj.usluga = f.properties;
-      else obj.zubar = f.properties;
-    });
-    toSend.push(obj);
-  });
-  res.json(toSend);
-});
 
-app.put('/potvrdiTermin', async (req, res) => {
-  const datumTermina = req.body.datum;
-  const idZubara = req.body.telefon;
-  let cypher =
-    "match(z:Zubar{telefon:'" +
-    idZubara +
-    "'})-[r:IMA]->(t:Termin{datum:'" +
-    datumTermina +
-    "'}) set t.potvrdjeno='DA' return t";
-  const session = driver.session();
-  await session.run(cypher);
-  session.close();
-  //let cypher2= "match(t:Termin{datum:"+ datumTermina + "'})"
-  res.json('Termin prihvaen');
-});
-
-app.get('/vratiTermineZubara', function (req, res) {
-  const session = driver.session();
-  let idZubara = 26;
-  let nizTerminaRezultat = new Array();
-  const cypher =
-    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE ID(z)=' +
-    idZubara +
-    ' RETURN t';
-  session
-    .run(cypher)
-    .then((result) => {
-      result.records.map((terminResult) => {
-        console.log(terminResult.get('t').properties);
-        nizTerminaRezultat.push(terminResult.get('t').properties);
-      });
-
-      res.json(nizTerminaRezultat);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
-app.get('/vratiZainteresovaneStudente', function (req, res) {
-  const session = driver.session();
-  //let imeZubara = "Zub2";
-  let nizStudenataRezultat = new Array();
-  const idZubara = req.body.id;
-  const cypher =
-    'MATCH (s:Student)-[:ZAINTERESOVAN_ZA]->(z:Zubar) WHERE ID(z)=' +
-    idZubara +
-    '  RETURN s';
-  session
-    .run(cypher)
-    .then((result) => {
-      result.records.map((studentResult) => {
-        console.log(studentResult.get('s').properties);
-        nizStudenataRezultat.push(studentResult.get('s').properties);
-      });
-
-      res.json(nizStudenataRezultat);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
-app.get('/vratiTermineZubaraNeOdobrene', function (req, res) {
-  const session = driver.session();
-  let idZubara = 26; //promeni u id ili telefon zubara
-  let nizTerminaRezultat = new Array();
-  const cypher =
-    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE ID(z)=' +
-    idZubara +
-    " AND t.potvrdjeno='NE' RETURN t";
-  session
-    .run(cypher)
-    .then((result) => {
-      result.records.map((terminResult) => {
-        console.log(terminResult.get('t').properties);
-        nizTerminaRezultat.push(terminResult.get('t').properties);
-      });
-
-      res.json(nizTerminaRezultat);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
-
-//Korisnik ostavlja komentar o zubaru
-app.post('/ostaviKomentar', function (req, res) {
-  const session = driver.session();
-  let idZubara = req.body.imeZubara;
-  let idKorisnika = req.body.imeKorisnika;
-  let ocena = req.body.ocena;
-  let komentar = req.body.komentar;
-  const cypher =
-    'MATCH (z:Zubar),(k:Korisnik) WHERE ID(z)=' +
-    imeZubara +
-    'AND ID(k)=' +
-    imeKorisnika +
-    "CREATE (k)-[:OSTAVIO]->(kom:Komentar {ocena:'" +
-    ocena +
-    "',komentar:'" +
-    komentar +
-    "'})-[:NA]->(z)";
-
-  session
-    .run(cypher)
-    .then((result) => {
-      // result.records.map(terminResult=>{
-      //   console.log( terminResult.get("t").properties );
-      // })
-
-      res.sendStatus(200);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
-//Korsinik ostavlja komentar na pitanje
-app.post('/ostaviKomentarNaPitanje', function (req, res) {
-  const session = driver.session();
-  let idPitanja = req.body.idPitanja;
-  let idKorisnika = req.body.idKorisnika;
-  let komentar = req.body.komentar;
-  const cypher =
-    'MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=' +
-    idPitanja +
-    ' AND ID(k)=' +
-    idKorisnika +
-    " CREATE (k)-[:OSTAVIO]->(kom:Komentar {komentar:'" +
-    komentar +
-    "'})-[:KOMENTAR_NA]->(p)";
-
-  session
-    .run(cypher)
-    .then((result) => {
-      // result.records.map(terminResult=>{
-      //   console.log( terminResult.get("t").properties );
-      // })
-
-      res.sendStatus(200);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
-//Vraca komentare o zubaru kako bi se prikazali na zubarevoj stranici
-app.get('/vratiKomentareOZubaru', function (req, res) {
-  const session = driver.session();
-  let nizKomentaraRezultat = new Array();
-  let idZubara = 26; //promeni u id ili telefon zubara
-  const cypher =
-    'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE ID(z)=' +
-    idZubara +
-    'RETURN kom';
-  session
-    .run(cypher)
-    .then((result) => {
-      result.records.map((komentariResult) => {
-        let objekat = {
-          id: komentariResult.get('kom').identity.low,
-          ocena: komentariResult.get('kom').properties.ocena,
-          komentar: komentariResult.get('kom').properties.komentar,
-        };
-
-        console.log(objekat);
-        nizKomentaraRezultat.push(objekat);
-      });
-
-      res.json(nizKomentaraRezultat);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
+//-------FORUM--------
+//#region 
 //Vraca sve komentare za odredjeno pitanje
 app.get('/vratiSveKomentare', function (req, res) {
   const session = driver.session();
@@ -744,52 +378,6 @@ app.get('/vratiTagove', function (req, res) {
     });
 });
 
-//Korisnik postavlja pitanje na forum
-app.post('/postaviPitanje', function (req, res) {
-  const session = driver.session();
-  let tekstPitanja = req.body.tekstPitanja;
-  let tagoviZaFlitriranje = req.body.tagoviZaFlitriranje;
-  let naslov = req.body.naslov;
-  let idKorisnika = req.body.idKorisnika;
-
-  let transformisanNiz = '';
-  tagoviZaFlitriranje.map((tag) => {
-    transformisanNiz += '"' + tag + '",';
-  });
-  transformisanNiz = transformisanNiz.slice(0, -1);
-  const cypher =
-    'MATCH(k:Korisnik) WHERE ID(k)=' +
-    imeKorisnika +
-    ' CREATE (p:Pitanje {tekstPitanja:"' +
-    tekstPitanja +
-    '",naslov:"' +
-    naslov +
-    '",tagoviZaFlitriranje:[' +
-    transformisanNiz +
-    ']})<-[:POSTAVIO]-(k)';
-
-  session
-    .run(cypher)
-    .then((result) => {
-      // result.records.map(terminResult=>{
-      //   console.log( terminResult.get("t").properties );
-      // })
-      console.log(cypher);
-      res.sendStatus(200);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
 //prosledis izabrane tagove vrati sva pitanja koja imaju taj tag u sebi
 app.post('/vratiPitanjaSaTagovima', function (req, res) {
   const session = driver.session();
@@ -836,6 +424,155 @@ app.post('/vratiPitanjaSaTagovima', function (req, res) {
       //return driver.close();
     });
 });
+//Korisnik/Zubar/Student prijavljuje pitanje/komenatr
+app.post('/prijaviPost', function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  let idKorisnika = req.body.idKorisnika;
+  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+  const cypher =
+    'MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=' +
+    idPitanja +
+    " AND ID(k)="+
+    idKorisnika+
+    " CREATE (k)-[:PRIJAVIO]->(p)"
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+
+});
+
+app.get('/pretraziUslugu/:nazivUsluge', async (req, res) => {
+  const nazivUsluge = req.params.nazivUsluge;
+  const session = driver.session();
+  let cypher =
+    "match(z:Zubar)-[r:NUDI_USLUGU]->(u:Usluga{naziv:'" +
+    nazivUsluge +
+    "'}) return z";
+  let result = await session.run(cypher);
+  if (result.records.length == 0) res.json('Nema takvih usluga');
+  let zubari = [];
+  result.records.forEach((p) => {
+    zubari.push(p._fields[0].properties);
+  });
+  res.json(zubari);
+});
+
+app.get('/pretraziUsluguPoCeni/:nazivUsluge', async (req, res) => {
+  const nazivUsluge = req.params.nazivUsluge;
+  const session = driver.session();
+  let cypher =
+    "match(z:Zubar)-[r:NUDI_USLUGU]->(u:Usluga{naziv:'" +
+    nazivUsluge +
+    "'}) return u,z order by u.cena";
+  /*let result = await session.run(cypher);
+  if (result.records.length == 0) res.json("Nema takvih usluga");
+  let zubari = [];
+  result.records.forEach((p) => {
+    zubari.push(p._fields[0].properties);
+  });
+  res.json(zubari);*/
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records == 0) res.json('Nema poruka.');
+  let toSend = []; //niz objekata obj
+  result.records.forEach((rec) => {
+    let obj = {}; // objekat koji objedinjuje onog ko je poslao poruku i njegovu poruku
+    rec._fields.forEach((f) => {
+      if (f.labels[0] == 'Usluga') obj.usluga = f.properties;
+      else obj.zubar = f.properties;
+    });
+    toSend.push(obj);
+  });
+  res.json(toSend);
+});
+
+app.get('/sviZubari', async (req, res) => {
+  const session = driver.session();
+  let cypher = 'match (z:Zubar) return z';
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records.length == 0) res.json('Nije pronadjen nijedan zubar.');
+  let sviZubari = [];
+  result.records.forEach((r) => {
+    sviZubari.push(r._fields[0].properties);
+  });
+  res.json(sviZubari);
+});
+//#endregion
+
+
+
+//-------KORISNIK----------
+
+//#region 
+//Korisnik postavlja pitanje na forum
+app.post('/postaviPitanje', function (req, res) {
+  const session = driver.session();
+  let tekstPitanja = req.body.tekstPitanja;
+  let tagoviZaFlitriranje = req.body.tagoviZaFlitriranje;
+  let naslov = req.body.naslov;
+  let idKorisnika = req.body.idKorisnika;
+
+  let transformisanNiz = '';
+  tagoviZaFlitriranje.map((tag) => {
+    transformisanNiz += '"' + tag + '",';
+  });
+  transformisanNiz = transformisanNiz.slice(0, -1);
+  const cypher =
+    'MATCH(k:Korisnik) WHERE ID(k)=' +
+    imeKorisnika +
+    ' CREATE (p:Pitanje {tekstPitanja:"' +
+    tekstPitanja +
+    '",naslov:"' +
+    naslov +
+    '",tagoviZaFlitriranje:[' +
+    transformisanNiz +
+    ']})<-[:POSTAVIO]-(k)';
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+      console.log(cypher);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
 //koisnik brise svoje pitanje
 app.post('/obrisiSvojePitanje', function (req, res) {
   const session = driver.session();
@@ -870,18 +607,24 @@ app.post('/obrisiSvojePitanje', function (req, res) {
         //return driver.close();
       });
 });
-//Admin brise bilo koje pitanje
-app.post('/obrisiPitanje', function (req, res) {
-  const session = driver.session();
-  let idPitanja = req.body.idPitanja;
-  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
 
+//Korisnik ostavlja komentar o zubaru
+app.post('/ostaviKomentar', function (req, res) {
+  const session = driver.session();
+  let idZubara = req.body.imeZubara;
+  let idKorisnika = req.body.imeKorisnika;
+  let ocena = req.body.ocena;
+  let komentar = req.body.komentar;
   const cypher =
-    'MATCH (k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE p(ID)=' +
-    idPitanja +
-<<<<<<< HEAD
-    " DETACH DELETE p"+
-    
+    'MATCH (z:Zubar),(k:Korisnik) WHERE ID(z)=' +
+    imeZubara +
+    'AND ID(k)=' +
+    imeKorisnika +
+    "CREATE (k)-[:OSTAVIO]->(kom:Komentar {ocena:'" +
+    ocena +
+    "',komentar:'" +
+    komentar +
+    "'})-[:NA]->(z)";
 
   session
     .run(cypher)
@@ -889,7 +632,7 @@ app.post('/obrisiPitanje', function (req, res) {
       // result.records.map(terminResult=>{
       //   console.log( terminResult.get("t").properties );
       // })
-      console.log(cypher);
+
       res.sendStatus(200);
     })
     .catch((e) => {
@@ -904,9 +647,144 @@ app.post('/obrisiPitanje', function (req, res) {
       // Close the Driver
       //return driver.close();
     });
-  });
+});
+
+//Korsinik ostavlja komentar na pitanje
+app.post('/ostaviKomentarNaPitanje', function (req, res) {
+  const session = driver.session();
+  let idPitanja = req.body.idPitanja;
+  let idKorisnika = req.body.idKorisnika;
+  let komentar = req.body.komentar;
+  const cypher =
+    'MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=' +
+    idPitanja +
+    ' AND ID(k)=' +
+    idKorisnika +
+    " CREATE (k)-[:OSTAVIO]->(kom:Komentar {komentar:'" +
+    komentar +
+    "'})-[:KOMENTAR_NA]->(p)";
+
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+app.post('/zakaziTermin', async (req, res) => {
+  const idKorisnika = req.body.telefonK;
+  const idZubara = req.body.telefonZ;
+  const datum = req.body.datum;
+  const imeUsluge = req.body.imeUsluge;
+  /*let cypher =
+    "match(k:Korisnik{telefon:'" +
+    idKorisnika +
+    "'}) match(z:Zubar{telefon:'" +
+    idZubara +
+    "'}) create (k)-[r:ZAKAZI_TERMIN]->(z)";*/
+  let cypher =
+    "match (k:Korisnik{telefon:'" +
+    idKorisnika +
+    "'}) match(z:Zubar{telefon:'" +
+    idZubara +
+    "'}) create (t:Termin {datum:'" +
+    datum +
+    "' , imeUsluge:'" +
+    imeUsluge +
+    "' , potvrdjeno: 'NE'" +
+    '}) create (k)-[r:ZAKAZAO]->(t) create(z)-[zr:IMA]->(t)';
+
+  let session = driver.session();
+  await session.run(cypher);
+  session.close();
+  res.json('Termin rezervisan');
+});
+//Poziva se da se popune polja kod korinika kad hoce da menja nesto o sebi
+app.get('/vratiInformacijeKorinik/:id', async (req, res) => {
+  const idKorisnika = req.params.id;
+  const session = driver.session();
+
+  let cypher =
+    "match(k:Korisnik) WHERE ID(k)="+idKorisnika+" return k";
+
+    session
+    .run(cypher)
+    .then((result) => {
+     let resultObject;
+      result.records.map(informationResult=>{
+        
+        console.log(informationResult.get('k').properties)
+
+      })
+      
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//Korisnik Promenio informacije o sebi
+app.put('/updateInfoKorisnik', async (req, res) => {
+  const idKorisnika = req.body.telefonK;
+  const novIdKoriniska = req.body.noviTelefon
+  const prezimeKorisnika = req.body.prezimeKorisnika;
+  const imeKorisnika = req.body.imeKorisnika;
+  let cypher =
+    "match (k:Korisnik) WHERE k.telefon=\"" +
+    idKorisnika +
+    "\" set k.telefon=\""+novIdKoriniska+" k.ime=\""+imeKorisnika+"\" k.prezime=\""+prezimeKorisnika+"\"";
+    session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//#endregion
 
 
+//---------ZUBAR----------
+//#region 
 //Zubar/Student ostavlja odgovor na pitanje
 app.post('/odgovoriNaPitanje', function (req, res) {
   const session = driver.session();
@@ -959,13 +837,50 @@ app.post('/odgovoriNaPitanje', function (req, res) {
     });
 });
 
+//Vraca komentare o zubaru kako bi se prikazali na zubarevoj stranici
+app.get('/vratiKomentareOZubaru', function (req, res) {
+  const session = driver.session();
+  let nizKomentaraRezultat = new Array();
+  let idZubara = 26; //promeni u id ili telefon zubara
+  const cypher =
+    'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE ID(z)=' +
+    idZubara +
+    'RETURN kom';
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((komentariResult) => {
+        let objekat = {
+          id: komentariResult.get('kom').identity.low,
+          ocena: komentariResult.get('kom').properties.ocena,
+          komentar: komentariResult.get('kom').properties.komentar,
+        };
+
+        console.log(objekat);
+        nizKomentaraRezultat.push(objekat);
+      });
+
+      res.json(nizKomentaraRezultat);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
 //Zubar brise svoj odgovor
 app.post('/obrisiSvojOdgovor', function (req, res) {
   const session = driver.session();
   let idOdgovora = req.body.idOdgovora;
   let idUlogovanogZubara = req.body.idUlogovanogZubara;
-
-<<<<<<< HEAD
   let cypher =
     "MATCH (z:Zubar)-[:ODGOVORIO]->(o:Odgovor)-[:ODGOVOR_NA]->(p:Pitanje) WHERE ID(o)=" +
     idOdgovora +
@@ -997,8 +912,195 @@ app.post('/obrisiSvojOdgovor', function (req, res) {
     });
 });
 
-  //Admin brise bilo koji odgovor
-app.post("/obrisiOdgovor", function (req, res) {
+
+app.put('/potvrdiTermin', async (req, res) => {
+  const datumTermina = req.body.datum;
+  const idZubara = req.body.telefon;
+  let cypher =
+    "match(z:Zubar{telefon:'" +
+    idZubara +
+    "'})-[r:IMA]->(t:Termin{datum:'" +
+    datumTermina +
+    "'}) set t.potvrdjeno='DA' return t";
+  const session = driver.session();
+  await session.run(cypher);
+  session.close();
+  //let cypher2= "match(t:Termin{datum:"+ datumTermina + "'})"
+  res.json('Termin prihvaen');
+});
+
+app.get('/vratiTermineZubara', function (req, res) {
+  const session = driver.session();
+  let idZubara = 26;
+  let nizTerminaRezultat = new Array();
+  const cypher =
+    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE ID(z)=' +
+    idZubara +
+    ' RETURN t';
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((terminResult) => {
+        console.log(terminResult.get('t').properties);
+        nizTerminaRezultat.push(terminResult.get('t').properties);
+      });
+
+      res.json(nizTerminaRezultat);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+app.get('/vratiZainteresovaneStudente', function (req, res) {
+  const session = driver.session();
+  //let imeZubara = "Zub2";
+  let nizStudenataRezultat = new Array();
+  const idZubara = req.body.id;
+  const cypher =
+    'MATCH (s:Student)-[:ZAINTERESOVAN_ZA]->(z:Zubar) WHERE ID(z)=' +
+    idZubara +
+    '  RETURN s';
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((studentResult) => {
+        console.log(studentResult.get('s').properties);
+        nizStudenataRezultat.push(studentResult.get('s').properties);
+      });
+
+      res.json(nizStudenataRezultat);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+app.get('/vratiTermineZubaraNeOdobrene', function (req, res) {
+  const session = driver.session();
+  let idZubara = 26; //promeni u id ili telefon zubara
+  let nizTerminaRezultat = new Array();
+  const cypher =
+    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE ID(z)=' +
+    idZubara +
+    " AND t.potvrdjeno='NE' RETURN t";
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((terminResult) => {
+        console.log(terminResult.get('t').properties);
+        nizTerminaRezultat.push(terminResult.get('t').properties);
+      });
+
+      res.json(nizTerminaRezultat);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+app.put('/novaUsluga', async (req, res) => {
+  const idZubara = req.body.id;
+  const session = driver.session();
+  const cypher1 =
+    'create (u:Usluga {naziv:$naziv, cena:$cena, opis:$opis, idZubara:$idZubara})';
+  let params1 = {
+    naziv: req.body.naziv,
+    cena: req.body.cena,
+    opis: req.body.opis,
+    idZubara: idZubara,
+  };
+  await session.run(cypher1, params1);
+  session.close();
+  const session2 = driver.session();
+  const cypher2 =
+    'match (z:Zubar) where id(z)=' +
+    idZubara +
+    ' match(u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)';
+  //"match (z:Zubar{id:$idZubara}), (u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)";
+  //console.log(cypher2);
+  //console.log(idZubara);
+  await session2.run(cypher2, { idZubara: idZubara });
+  session2.close();
+  res.json('Usluga je dodata');
+});
+
+app.put('/preporuciZubara', async (req, res) => {
+  const idZubara = req.body.id;
+  const oznaceni = req.body.oznaceni; // niz idjeva
+  console.log(typeof oznaceni);
+  oznaceni.forEach(async (o) => {
+    console.log(o);
+    const session = driver.session();
+    let cypher =
+      'match (z:Zubar) where id(z)=' +
+      idZubara +
+      ' match(preporucen:Zubar) where id(preporucen)=' +
+      o +
+      ' create (z)-[r:PREPORUCUJE]->(preporucen)';
+    await session.run(cypher);
+    session.close();
+  });
+  res.json(true);
+});
+
+app.put('/prihvatiStaziranje', async (req, res) => {
+  const idStudenta = req.body.idS;
+  const idZubara = req.body.idZ;
+  let session = driver.session();
+  let cypher1 =
+    'match(z:Zubar) where id(z)=' +
+    idZubara +
+    ' match(s:Student) where id(s)=' +
+    idStudenta +
+    ' create (s)-[r:STAZIRA_KOD]->(z)';
+  await session.run(cypher1);
+  session.close();
+  session = driver.session();
+  let cypher2 =
+    'match(z:Zubar) where id(z)=' +
+    idZubara +
+    ' match(s:Student) where id(s)=' +
+    idStudenta +
+    ' match(s)-[r:ZAINTERESOVAN_ZA]->(z) delete r';
+  await session.run(cypher2);
+  session.close();
+  res.json('Staziranje prihvaceno');
+});
+//#endregion
+
+
+//----------ADMIN--------
+//#region 
+//Admin brise bilo koji odgovor
+  app.post("/obrisiOdgovor", function (req, res) {
     const session = driver.session();
     let idOdgovora = req.body.idOdgovora;
     //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
@@ -1031,76 +1133,7 @@ app.post("/obrisiOdgovor", function (req, res) {
         //return driver.close();
       });
 });
-//Admin brise bilo koji odgovor
-app.post('/obrisiOdgovor', function (req, res) {
-  const session = driver.session();
-  let idPitanja = req.body.idPitanja;
-  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
 
-  const cypher =
-    'MATCH (o:Odgovor)-[:ODGOVOR_NA]->(p:Pitanje) WHERE ID(o)=' +
-    idOdgovora +
-    ' DETACH DELETE o' +
-    session
-      .run(cypher)
-      .then((result) => {
-        // result.records.map(terminResult=>{
-        //   console.log( terminResult.get("t").properties );
-        // })
-        console.log(cypher);
-        res.sendStatus(200);
-      })
-      .catch((e) => {
-        // Output the error
-        console.log(e);
-      })
-      .then(() => {
-        // Close the Session
-        return session.close();
-      })
-      .then(() => {
-        // Close the Driver
-        //return driver.close();
-      });
-});
-
-//Korisnik/Zubar/Student prijavljuje pitanje/komenatr
-app.post('/prijaviPost', function (req, res) {
-  const session = driver.session();
-  let idPitanja = req.body.idPitanja;
-  let idKorisnika = req.body.idKorisnika;
-  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
-
-  const cypher =
-    'MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=' +
-    idPitanja +
-    " AND ID(k)="+
-    idKorisnika+
-    " CREATE (k)-[:PRIJAVIO]->(p)"
-
-  session
-    .run(cypher)
-    .then((result) => {
-      // result.records.map(terminResult=>{
-      //   console.log( terminResult.get("t").properties );
-      // })
-      console.log(cypher);
-      res.sendStatus(200);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-
-});
 //Adminu se vraca lista prijavljenih komentara/pitanja
 app.get('/vratiPrijavljene', function (req, res) {
   const session = driver.session();
@@ -1141,15 +1174,49 @@ app.get('/vratiPrijavljene', function (req, res) {
 });
 
 //Admin brise prijavu (smatra da je prijava ne osnovana (glupa))
-
 app.post('/obrisiPriajvu', function (req, res) {
 
+    const session = driver.session();
+    let idPitanja = req.body.idPitanja;
+    //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
+
+      const cypher =
+      "MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) DETACH DELETE prij"
+
+    session
+      .run(cypher)
+      .then((result) => {
+        // result.records.map(terminResult=>{
+        //   console.log( terminResult.get("t").properties );
+        // })
+        console.log(cypher);
+        res.sendStatus(200);
+      })
+      .catch((e) => {
+        // Output the error
+        console.log(e);
+      })
+      .then(() => {
+        // Close the Session
+        return session.close();
+      })
+      .then(() => {
+        // Close the Driver
+        //return driver.close();
+    });
+  });
+
+  //Admin brise bilo koje pitanje
+app.post('/obrisiPitanje', function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
   //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
 
-    const cypher =
-    "MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) DETACH DELETE prij"
+  const cypher =
+    'MATCH (k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE p(ID)=' +
+    idPitanja +
+    " DETACH DELETE p"+
+    
 
   session
     .run(cypher)
@@ -1172,6 +1239,8 @@ app.post('/obrisiPriajvu', function (req, res) {
       // Close the Driver
       //return driver.close();
     });
+  });
+//#endregion
 
 
 const PORT = process.env.PORT || 5000;
