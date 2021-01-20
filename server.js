@@ -748,6 +748,7 @@ app.get('/vratiInformacijeKorinik/:id', async (req, res) => {
       //return driver.close();
     });
 });
+//TREBA DA SE ISTESTIRA
 //Korisnik Promenio informacije o sebi
 app.put('/updateInfoKorisnik', async (req, res) => {
   const idKorisnika = req.body.telefonK;
