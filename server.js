@@ -909,33 +909,34 @@ app.post("/obrisiPitanje", function (req, res) {
       //return driver.close();
     });
   });
-//------------TREBA DA SE TESTIRAJU
+
 //Zubar/Student ostavlja odgovor na pitanje
 app.post("/odgovoriNaPitanje", function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
   let daLiJeZubar = req.body.daLiJeZubar;
-  let idPosiljaoca = req.body.idZubara;
+  let idPosiljaoca = req.body.idPosiljaoca;
   let odgovor = req.body.odgovor;
+  let cypher = "";
   if(daLiJeZubar){
-    const cypher =
+     cypher =
     "MATCH (p:Pitanje),(z:Zubar) WHERE ID(p)=" +
     idPitanja +
-    "AND ID(z)=" +
+    " AND ID(z)=" +
     idPosiljaoca +
-    "CREATE (z)-[:ODGOVORIO]->(o:Odgovor {odgovor:\"" +
+    " CREATE (z)-[:ODGOVORIO]->(o:Odgovor {odgovor:\"" +
     odgovor +
-    "\",tag:\"zubar\",odobreno:\"DA\"})-[:KOMENTAR_NA]->(p)";
+    "\",tag:\"zubar\",odobreno:\"DA\"})-[:ODGOVOR_NA]->(p)";
 
   }else{
-    const cypher =
+     cypher =
     "MATCH (p:Pitanje),(s:Student) WHERE ID(p)=" +
     idPitanja +
     "AND ID(s)=" +
     idPosiljaoca +
-    "CREATE (s)-[:ODGOVORIO]->(o:Odgovor {odgovor:\"" +
+    " CREATE (s)-[:ODGOVORIO]->(o:Odgovor {odgovor:\"" +
     odgovor +
-    "\",tag:\"student\",odobreno:\"NE\"})-[:KOMENTAR_NA]->(p)";
+    "\",tag:\"student\",odobreno:\"NE\"})-[:ODGOVOR_NA]->(p)";
   }
 
 
@@ -961,19 +962,19 @@ app.post("/odgovoriNaPitanje", function (req, res) {
       //return driver.close();
     });
 });
+
 //Zubar brise svoj odgovor
 app.post("/obrisiSvojOdgovor", function (req, res) {
   const session = driver.session();
   let idOdgovora = req.body.idOdgovora;
   let idUlogovanogZubara = req.body.idUlogovanogZubara;
- 
 
-  const cypher =
+  let cypher =
     "MATCH (z:Zubar)-[:ODGOVORIO]->(o:Odgovor)-[:ODGOVOR_NA]->(p:Pitanje) WHERE ID(o)=" +
     idOdgovora +
     " AND ID(z)=" +
     idUlogovanogZubara+
-      " DETACH DELETE o"+
+      " DETACH DELETE o"
     
 
   session
@@ -982,7 +983,7 @@ app.post("/obrisiSvojOdgovor", function (req, res) {
       // result.records.map(terminResult=>{
       //   console.log( terminResult.get("t").properties );
       // })
-      console.log(cypher);
+     
       res.sendStatus(200);
     })
     .catch((e) => {
@@ -998,17 +999,18 @@ app.post("/obrisiSvojOdgovor", function (req, res) {
       //return driver.close();
     });
 });
+
   //Admin brise bilo koji odgovor
 app.post("/obrisiOdgovor", function (req, res) {
     const session = driver.session();
-    let idPitanja = req.body.idPitanja;
+    let idOdgovora = req.body.idOdgovora;
     //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
   
   
       const cypher =
       "MATCH (o:Odgovor)-[:ODGOVOR_NA]->(p:Pitanje) WHERE ID(o)=" +
       idOdgovora +
-        " DETACH DELETE o"+
+        " DETACH DELETE o"
   
     session
       .run(cypher)
@@ -1046,9 +1048,9 @@ app.post("/prijaviPost", function (req, res) {
     const cypher =
     "MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=" +
     idPitanja +
-    " AND ID(l)="+
+    " AND ID(k)="+
     idKorisnika+
-    " CREATE (k)-[:PRIJAVIO]->(p)"+
+    " CREATE (k)-[:PRIJAVIO]->(p)"
 
   session
     .run(cypher)
@@ -1077,7 +1079,7 @@ app.get("/vratiPrijavljene", function (req, res) {
   const session = driver.session();
 
   const cypher =
-    "MATCH (p:Pitanje)<-[:PRIJAVIO] RETURN p" 
+    "MATCH (p:Pitanje)<-[:PRIJAVIO]-(k) RETURN p" 
     let pomocniNiz = []
   session
     .run(cypher)
@@ -1086,9 +1088,10 @@ app.get("/vratiPrijavljene", function (req, res) {
 
         //console.log(tagoviResult.get("p.tagoviZaFlitriranje"));
        
-        tagoviResult.get("p").map(prijavljenoPitanje=>{
-          pomocniNiz.push(prijavljenoPitanje)
-        })
+         let objekat = pitanjaResult.get("p").properties
+         objekat.idPitanja = pitanjaResult.get("p").identity.low
+         pomocniNiz.push(objekat)
+       
         
       });
      
@@ -1109,15 +1112,16 @@ app.get("/vratiPrijavljene", function (req, res) {
       //return driver.close();
     });
 });
+
 //Admin brise prijavu (smatra da je prijava ne osnovana (glupa))
-app.post("/obrisiPriajvu", function (req, res) {
+app.post("/obrisiPriajve", function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
   //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
 
 
     const cypher =
-    "MATCH (p:Pitanje)<-[prij:PRIJAVIO] DETACH DELETE prij"+
+    "MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) DETACH DELETE prij"
 
   session
     .run(cypher)
