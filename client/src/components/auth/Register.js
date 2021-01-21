@@ -49,8 +49,7 @@ const Register = ({ registracija }) => {
       username: usernameZ,
       sifra: sifraZ,
     };
-    const tip = 'Zubar';
-    registracija(zaSlanje, tip);
+    registracija(zaSlanje, 'Zubar');
     history.push('/');
   };
 
@@ -63,8 +62,7 @@ const Register = ({ registracija }) => {
       username: usernameK,
       sifra: sifraK,
     };
-    const tip = 'Korisnik';
-    registracija(zaSlanje, tip);
+    registracija(zaSlanje, 'Korisnik');
     history.push('/');
   };
 
@@ -168,6 +166,14 @@ const Register = ({ registracija }) => {
                     value='Registruj se'
                   />
                 </div>
+                <div className='group'>
+                  <input
+                    type='submit'
+                    className='button1'
+                    value='Kreiraj ordinaciju'
+                    onClick={() => history.push('/register/ordinacija')}
+                  />
+                </div>
               </div>
             </form>
             <form onSubmit={onSubmitK}>
@@ -243,6 +249,15 @@ const Register = ({ registracija }) => {
                     type='submit'
                     className='button'
                     value='Registruj se'
+                  />
+                </div>
+
+                <div className='group'>
+                  <input
+                    type='submit'
+                    className='button1'
+                    value='Student si?'
+                    onClick={() => history.push('/register/student')}
                   />
                 </div>
               </div>

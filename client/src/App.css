@@ -57,7 +57,7 @@ a {
 }
 .login-html .tab,
 .login-form .group .label,
-.login-form .group .button {
+.login-form .group .button .button1 {
   text-transform: uppercase;
   margin-top: 0px;
 }
@@ -85,13 +85,13 @@ a {
 }
 .login-form .group .label,
 .login-form .group .input,
-.login-form .group .button {
+.login-form .group .button .button1 {
   width: 100%;
   color: #fff;
   display: block;
 }
 .login-form .group .input,
-.login-form .group .button {
+.login-form .group .button .button1 {
   border: none;
   padding: 15px 20px;
   border-radius: 25px;
@@ -107,6 +107,9 @@ a {
 }
 .login-form .group .button {
   background: #1161ee;
+}
+.login-form .group .button1 {
+  background: #041a44;
 }
 .login-form .group label .icon {
   width: 15px;
@@ -176,13 +179,13 @@ a {
 .terza {
   width: 1536px;
   height: 721px;
-  background: url('./img/slika1.jpg') no-repeat center;
+  background: url('./img/slika2.jpg') no-repeat center;
 }
 
 .terza1 {
   width: 1536px;
   height: 721px;
-  background: url('./img/slika1.jpg') no-repeat center;
+  background: url('./img/slika2.jpg') no-repeat center;
 }
 
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
@@ -304,7 +307,7 @@ html {
 
 .login {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   margin: -150px 0 0 -150px;
   width: 300px;

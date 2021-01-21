@@ -4,27 +4,26 @@ import {
   GRESKA_PRILIKOM_REGISTROVANJA,
   USPESNO_LOGOVAN,
   GRESKA_PRI_LOGOVANJU,
+  USPESNO_REGISTROVANA_ORDINACIJA,
 } from './types';
 
 //Register user
 export const registracija = (podaci, tip) => async (dispatch) => {
   try {
-    if (tip === 'Zubar') {
-      const res = await axios.post('/createZubar', podaci);
-      console.log(res.data);
-    } else {
-      const res = await axios.post('/createKorisnik', podaci);
-      console.log(res.data);
+    const res = await axios.post(`/create${tip}`, podaci);
+    if (tip === 'Ordinacija') {
+      dispatch({
+        type: USPESNO_REGISTROVANA_ORDINACIJA,
+        payload: podaci,
+      });
+      return;
     }
-
     dispatch({
       type: USPESNO_REGISTROVAN,
       payload: podaci,
     });
   } catch (err) {
-    dispatch({
-      type: GRESKA_PRILIKOM_REGISTROVANJA,
-    });
+    console.error(err);
   }
 };
 
