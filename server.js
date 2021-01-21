@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-var driver = neo4j.driver(
-  'neo4j://localhost:7687',
-  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-);
+// var driver = neo4j.driver(
+//   'neo4j://localhost:7687',
+//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+// );
 
-//  const driver = neo4j.driver(
-//    'bolt://localhost:7687',
-//    neo4j.auth.basic('neo4j', 'pass')
-//  );
+  const driver = neo4j.driver(
+    'bolt://localhost:7687',
+    neo4j.auth.basic('neo4j', 'pass')
+  );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -180,15 +180,15 @@ app.get('/pretraziPoGradu/:imeGrada', async (req, res) => {
 
 //ZA STUDENTA
 app.put('/postaniZainteresovan', async (req, res) => {
-  const idZubara = req.body.idZ;
-  const idStudenta = req.body.idS;
+  const telefonZubara = req.body.telefonZubara;
+  const telefonStudenta = req.body.telefonStudenta;
   const session = driver.session();
   let cypher =
-    'match(z:Zubar) where id(z)=' +
-    idZubara +
-    ' match(s:Student) where id(s)=' +
-    idStudenta +
-    ' create (s)-[r:ZAINTERESOVAN_ZA]->(z)';
+    'match(z:Zubar) where z.telefon="' +
+    telefonZubara +
+    '" match(s:Student) where s.telefon="' +
+    telefonStudenta +
+    '" create (s)-[r:ZAINTERESOVAN_ZA]->(z)';
   await session.run(cypher);
   session.close();
   res.json(true);
@@ -545,6 +545,40 @@ app.get('/sviZubari', async (req, res) => {
   });
   res.json(sviZubari);
 });
+//pretraga na forumu
+app.get('/pretraziPoImenu/:ime', async (req, res) => {
+  const ime = req.params.ime;
+  const session = driver.session();
+
+  let cypher = 'MATCH (k) WHERE k.ime CONTAINS "'+ime+'" return k';
+  let resultArr = []
+  session
+    .run(cypher)
+    .then((result) => {
+      console.log(result)
+      result.records.map((informationResult) => {
+       
+        console.log(informationResult.get('k').properties);
+        resultArr.push(informationResult.get('k').properties)
+      });
+     // res.sendStatus(200);
+      res.json(resultArr)
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+
 //#endregion
 
 //-------KORISNIK----------
@@ -556,7 +590,7 @@ app.post('/postaviPitanje', function (req, res) {
   let tekstPitanja = req.body.tekstPitanja;
   let tagoviZaFlitriranje = req.body.tagoviZaFlitriranje;
   let naslov = req.body.naslov;
-  let idKorisnika = req.body.idKorisnika;
+  let telefonKorisnika = req.body.telefonKorisnika;
 
   let transformisanNiz = '';
   tagoviZaFlitriranje.map((tag) => {
@@ -564,9 +598,9 @@ app.post('/postaviPitanje', function (req, res) {
   });
   transformisanNiz = transformisanNiz.slice(0, -1);
   const cypher =
-    'MATCH(k:Korisnik) WHERE ID(k)=' +
-    imeKorisnika +
-    ' CREATE (p:Pitanje {tekstPitanja:"' +
+    'MATCH(k:Korisnik) WHERE k.telefon="' +
+    telefonKorisnika +
+    '" CREATE (p:Pitanje {tekstPitanja:"' +
     tekstPitanja +
     '",naslov:"' +
     naslov +
@@ -635,16 +669,16 @@ app.post('/obrisiSvojePitanje', function (req, res) {
 //Korisnik ostavlja komentar o zubaru
 app.post('/ostaviKomentar', function (req, res) {
   const session = driver.session();
-  let idZubara = req.body.imeZubara;
-  let idKorisnika = req.body.imeKorisnika;
+  let telefonZubara = req.body.telefonZubara;
+  let telefonKorisnika = req.body.telefonKorisnika;
   let ocena = req.body.ocena;
   let komentar = req.body.komentar;
   const cypher =
-    'MATCH (z:Zubar),(k:Korisnik) WHERE ID(z)=' +
-    imeZubara +
-    'AND ID(k)=' +
-    imeKorisnika +
-    "CREATE (k)-[:OSTAVIO]->(kom:Komentar {ocena:'" +
+    'MATCH (z:Zubar),(k:Korisnik) WHERE z.telefon=' +
+    telefonZubara +
+    'AND k.telefon=' +
+    telefonKorisnika +
+    "'CREATE (k)-[:OSTAVIO]->(kom:Komentar {ocena:'" +
     ocena +
     "',komentar:'" +
     komentar +
@@ -682,7 +716,7 @@ app.post('/ostaviKomentarNaPitanje', function (req, res) {
   const cypher =
     'MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=' +
     idPitanja +
-    ' AND ID(k)=' +
+    ' AND k.telefon=' +
     idKorisnika +
     " CREATE (k)-[:OSTAVIO]->(kom:Komentar {komentar:'" +
     komentar +
@@ -744,7 +778,7 @@ app.get('/vratiInformacijeKorinik/:id', async (req, res) => {
   const idKorisnika = req.params.id;
   const session = driver.session();
 
-  let cypher = 'match(k:Korisnik) WHERE ID(k)=' + idKorisnika + ' return k';
+  let cypher = 'match(k:Korisnik) WHERE k.telefon' + idKorisnika + ' return k';
 
   session
     .run(cypher)
@@ -769,7 +803,7 @@ app.get('/vratiInformacijeKorinik/:id', async (req, res) => {
       //return driver.close();
     });
 });
-//TREBA DA SE ISTESTIRA
+//TREBA DA SE ISTESTIRA-----------------
 //Korisnik Promenio informacije o sebi
 app.put('/updateInfoKorisnik', async (req, res) => {
   const idKorisnika = req.body.telefonK;
@@ -864,14 +898,14 @@ app.post('/odgovoriNaPitanje', function (req, res) {
 });
 
 //Vraca komentare o zubaru kako bi se prikazali na zubarevoj stranici
-app.get('/vratiKomentareOZubaru', function (req, res) {
+app.get('/vratiKomentareOZubaru/:telefon', function (req, res) {
   const session = driver.session();
   let nizKomentaraRezultat = new Array();
-  let idZubara = 26; //promeni u id ili telefon zubara
+  let telefon = req.param.telefon
   const cypher =
-    'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE ID(z)=' +
-    idZubara +
-    'RETURN kom';
+    'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE z.telefon="' +
+    telefon +
+    '" RETURN kom';
   session
     .run(cypher)
     .then((result) => {
@@ -953,14 +987,14 @@ app.put('/potvrdiTermin', async (req, res) => {
   res.json('Termin prihvaen');
 });
 
-app.get('/vratiTermineZubara', function (req, res) {
+app.get('/vratiTermineZubara/:telefon', function (req, res) {
   const session = driver.session();
-  let idZubara = 26;
+  let telefonZubara = req.params.telefon;
   let nizTerminaRezultat = new Array();
   const cypher =
-    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE ID(z)=' +
-    idZubara +
-    ' RETURN t';
+    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
+    telefonZubara +
+    '" RETURN t';
   session
     .run(cypher)
     .then((result) => {
@@ -985,15 +1019,15 @@ app.get('/vratiTermineZubara', function (req, res) {
     });
 });
 
-app.get('/vratiZainteresovaneStudente', function (req, res) {
+app.get('/vratiZainteresovaneStudente/:telefon', function (req, res) {
   const session = driver.session();
   //let imeZubara = "Zub2";
   let nizStudenataRezultat = new Array();
-  const idZubara = req.body.id;
+  const telefonZubara = req.params.telefon;
   const cypher =
-    'MATCH (s:Student)-[:ZAINTERESOVAN_ZA]->(z:Zubar) WHERE ID(z)=' +
-    idZubara +
-    '  RETURN s';
+    'MATCH (s:Student)-[:ZAINTERESOVAN_ZA]->(z:Zubar) WHERE z.telefon="' +
+    telefonZubara +
+    '"  RETURN s';
   session
     .run(cypher)
     .then((result) => {
@@ -1018,14 +1052,14 @@ app.get('/vratiZainteresovaneStudente', function (req, res) {
     });
 });
 
-app.get('/vratiTermineZubaraNeOdobrene', function (req, res) {
+app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
   const session = driver.session();
-  let idZubara = 26; //promeni u id ili telefon zubara
+  let telefonZubara = req.params.telefon; 
   let nizTerminaRezultat = new Array();
   const cypher =
-    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE ID(z)=' +
-    idZubara +
-    " AND t.potvrdjeno='NE' RETURN t";
+    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
+    telefonZubara +
+    "\" AND t.potvrdjeno='NE' RETURN t";
   session
     .run(cypher)
     .then((result) => {
@@ -1065,9 +1099,9 @@ app.put('/novaUsluga', async (req, res) => {
   session.close();
   const session2 = driver.session();
   const cypher2 =
-    'match (z:Zubar) where id(z)=' +
+    'match (z:Zubar) where z.username="' +
     idZubara +
-    ' match(u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)';
+    '" match(u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)';
   //"match (z:Zubar{id:$idZubara}), (u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)";
   //console.log(cypher2);
   //console.log(idZubara);
@@ -1195,9 +1229,9 @@ app.get('/vratiPrijavljene', function (req, res) {
 app.post('/obrisiPriajvu', function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
-  //MATCH (k:idPitanja)-[:POSTAVIO]->(p:Pitanje) WHERE p.id='5'AND k.id='asd' DETACH DELETE p
 
-  const cypher = 'MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) DETACH DELETE prij';
+
+  const cypher = 'MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) WHERE ID(p)='+idPitanja+ ' DETACH DELETE prij';
 
   session
     .run(cypher)
