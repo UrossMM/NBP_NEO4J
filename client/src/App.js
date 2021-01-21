@@ -6,6 +6,7 @@ import Register from './components/auth/Register';
 import Login from './components/auth/Login';
 import RegisterStudent from './components/auth/RegisterStudent';
 import RegisterOrdinacija from './components/auth/RegisterOrdinacija';
+import Zubar from './components/dashboard/Zubar';
 import './App.css';
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
             path='/register/ordinacija'
             component={RegisterOrdinacija}
           />
+          <Route exact path='/dashboardZubar' component={Zubar} />
         </Switch>
       </Router>
     </Provider>

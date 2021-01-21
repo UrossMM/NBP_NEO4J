@@ -25,6 +25,7 @@ const Login = ({ login }) => {
       sifra,
     };
     login(zaSlanje);
+    history.push('/dashboardZubar');
   };
   return (
     <div className='terza1'>

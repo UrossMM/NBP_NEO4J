@@ -27,6 +27,10 @@ app.post('/createZubar', function (req, res) {
     //var params = { id: body.id, ime: body.ime, prezime: body.prezime };
     "create ( z:Zubar {ime:'" +
     body.ime +
+    "' , username:'" +
+    body.username +
+    "', sifra:'" +
+    body.sifra +
     "' , prezime:'" +
     body.prezime +
     "' , grad:'" +
@@ -57,6 +61,10 @@ app.post('/createStudent', function (req, res) {
     body.ime +
     "' , prezime:'" +
     body.prezime +
+    "' , username:'" +
+    body.username +
+    "', sifra:'" +
+    body.sifra +
     "' , grad:'" +
     body.grad +
     "' , telefon:'" +
@@ -87,6 +95,10 @@ app.post('/createKorisnik', function (req, res) {
     body.ime +
     "' , prezime:'" +
     body.prezime +
+    "' , username:'" +
+    body.username +
+    "', sifra:'" +
+    body.sifra +
     "' , telefon:'" +
     body.telefon +
     "'}) return k";
@@ -101,6 +113,27 @@ app.post('/createKorisnik', function (req, res) {
       session.close();
       res.json(true);
     });
+});
+
+app.post('/getLoginUser', async (req, res) => {
+  let username = req.body.username;
+  let sifra = req.body.sifra;
+  const session = driver.session();
+  const cypher = 'match(n{username:$username, sifra:$sifra}) return n';
+  let params = { username: username, sifra: sifra };
+  let result = await session.run(cypher, params);
+  if (result.records.length == 0) res.json('Nije pronadjen nijedan korisnik.');
+  res.json(result.records[0]._fields[0].properties);
+});
+
+app.post('/getOrdinacija', async (req, res) => {
+  let username = req.body.username;
+  const session = driver.session();
+  const cypher =
+    'match(n{username:$username})-[r:RADI]->(o:Ordinacija) return o';
+  let result = await session.run(cypher, { username: username });
+  if (result.records.length == 0) res.json('Zubar ne radi u ordinaciji.');
+  res.json(result.records[0]._fields[0].properties);
 });
 
 app.post('/createOrdinacija', function (req, res) {
@@ -1018,7 +1051,7 @@ app.get('/vratiTermineZubaraNeOdobrene', function (req, res) {
 });
 
 app.put('/novaUsluga', async (req, res) => {
-  const idZubara = req.body.id;
+  const idZubara = req.body.username;
   const session = driver.session();
   const cypher1 =
     'create (u:Usluga {naziv:$naziv, cena:$cena, opis:$opis, idZubara:$idZubara})';
@@ -1044,18 +1077,19 @@ app.put('/novaUsluga', async (req, res) => {
 });
 
 app.put('/preporuciZubara', async (req, res) => {
-  const idZubara = req.body.id;
-  const oznaceni = req.body.oznaceni; // niz idjeva
+  const idZubara = req.body.username;
+  const oznaceni = req.body.oznaceni; // niz idjeva kao da imas listu svih zubara i tu kao cekiras kog da preporucujes i vadis im usernameove i ofarba se u crveno
   console.log(typeof oznaceni);
   oznaceni.forEach(async (o) => {
     console.log(o);
     const session = driver.session();
     let cypher =
-      'match (z:Zubar) where id(z)=' +
+      "match (z:Zubar{username:'" +
       idZubara +
-      ' match(preporucen:Zubar) where id(preporucen)=' +
+      "'}) " +
+      "match(preporucen:Zubar{username:'" +
       o +
-      ' create (z)-[r:PREPORUCUJE]->(preporucen)';
+      "' }) create (z)-[r:PREPORUCUJE]->(preporucen)";
     await session.run(cypher);
     session.close();
   });

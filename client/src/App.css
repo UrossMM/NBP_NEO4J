@@ -33,7 +33,7 @@ a {
     0 17px 50px 0 rgba(0, 0, 0, 0.9);
 }
 .login-html {
-  margin-top: 20px;
+  margin-top: 0px;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -93,7 +93,7 @@ a {
 .login-form .group .input,
 .login-form .group .button .button1 {
   border: none;
-  padding: 15px 20px;
+  padding: 6px 10px;
   border-radius: 25px;
   background: rgba(255, 255, 255, 0.1);
 }
