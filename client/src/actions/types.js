@@ -12,3 +12,4 @@ export const SVI_ZUBARI = 'SVI_ZUBARI';
 export const SVI_KORISNICI = 'SVI_KORISNICI';
 export const SVI_STUDENTI = 'SVI_STUDENTI';
 export const SVE_PORUKE = 'SVE_PORUKE';
+export const SVE_USLUGE = 'SVE_USLUGE';

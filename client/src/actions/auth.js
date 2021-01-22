@@ -6,6 +6,7 @@ import {
   USPESNO_REGISTROVANA_ORDINACIJA,
   POSTAVI_ORDINACIJU,
   LOGOUT,
+  SVE_USLUGE,
 } from './types';
 
 //Register user
@@ -45,6 +46,12 @@ export const login = (podaci) => async (dispatch) => {
     dispatch({
       type: POSTAVI_ORDINACIJU,
       payload: res1.data,
+    });
+    const res2 = await axios.get('/vratiUslugeZubara/' + podaci.username);
+    console.log(res2.data);
+    dispatch({
+      type: SVE_USLUGE,
+      payload: res2.data,
     });
   } catch (err) {
     dispatch({

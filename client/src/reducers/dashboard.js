@@ -4,6 +4,7 @@ import {
   SVI_ZUBARI,
   SVI_KORISNICI,
   SVI_STUDENTI,
+  SVE_USLUGE,
 } from '../actions/types';
 
 const initialState = {
@@ -12,6 +13,7 @@ const initialState = {
   sviKorisnici: [],
   sviStudenti: [],
   svePoruke: [],
+  sveUsluge: [],
 };
 
 function dashboardReducer(state = initialState, action) {
@@ -29,6 +31,7 @@ function dashboardReducer(state = initialState, action) {
         sviKorisnici: [],
         sviStudenti: [],
         svePoruke: [],
+        sveUsluge: [],
       };
     case SVI_ZUBARI:
       return {
@@ -44,6 +47,11 @@ function dashboardReducer(state = initialState, action) {
       return {
         ...state,
         sviStudenti: payload,
+      };
+    case SVE_USLUGE:
+      return {
+        ...state,
+        sveUsluge: payload,
       };
     default:
       return state;
