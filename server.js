@@ -862,6 +862,74 @@ app.put('/updateInfoKorisnik', async (req, res) => {
       //return driver.close();
     });
 });
+
+//pitanja koje je postavio korisnik
+app.get('/pitanjaPostavioKorisnik/:id', async (req, res) => {
+  const idKorisnika = req.params.id;
+  const session = driver.session();
+  let arrResult = []
+  let cypher = 'match(k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE k.telefon' + idKorisnika + ' return p';
+
+  session
+    .run(cypher)
+    .then((result) => {
+      let resultObject;
+      result.records.map((informationResult) => {
+        console.log(informationResult.get('p').properties);
+        arrResult.push(informationResult.get('p').properties)
+      });
+      res.json(arrResult)
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//pitanja na koja je odgovorio student
+app.get('/pitanjaOdgovorioStudent/:id', async (req, res) => {
+  const idStudenta = req.params.id;
+
+  const session = driver.session();
+  let arrResult = []
+  let cypher = 'match(s:Student)-[:ODGOVORIO]->(o:Odgovor)-[:Odgovor_Na]->(p:Pitanje) WHERE s.telefon="' + idStudenta + '" return p,o';
+
+  session
+    .run(cypher)
+    .then((result) => {
+      let resultObject;
+      result.records.map((informationResult) => {
+        let object = {}
+       
+        object.pitanje = informationResult.get('p').properties.tekstPitanja
+        object.odgovor = informationResult.get('o').properties.odgovor
+        console.log(object);
+        arrResult.push(object)
+      });
+      res.json(arrResult)
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
 //#endregion
 
 //---------ZUBAR----------
@@ -873,25 +941,25 @@ app.post('/odgovoriNaPitanje', function (req, res) {
   let daLiJeZubar = req.body.daLiJeZubar;
   let idPosiljaoca = req.body.idPosiljaoca;
   let odgovor = req.body.odgovor;
-
+  let cypher =""
   if (daLiJeZubar) {
-    const cypher =
+     cypher =
       'MATCH (p:Pitanje),(z:Zubar) WHERE ID(p)=' +
       idPitanja +
-      'AND ID(z)=' +
+      'AND z.telefon="' +
       idPosiljaoca +
-      'CREATE (z)-[:ODGOVORIO]->(o:Odgovor {odgovor:"' +
+      '" CREATE (z)-[:ODGOVORIO]->(o:Odgovor {odgovor:"' +
       odgovor +
-      '",tag:"zubar",odobreno:"DA"})-[:KOMENTAR_NA]->(p)';
+      '",tag:"zubar",odobreno:"DA"})-[:Odgovor_Na]->(p)';
   } else {
-    const cypher =
+     cypher =
       'MATCH (p:Pitanje),(s:Student) WHERE ID(p)=' +
       idPitanja +
-      'AND ID(s)=' +
+      ' AND s.telefon="' +
       idPosiljaoca +
-      'CREATE (s)-[:ODGOVORIO]->(o:Odgovor {odgovor:"' +
+      '" CREATE (s)-[:ODGOVORIO]->(o:Odgovor {odgovor:"' +
       odgovor +
-      '",tag:"student",odobreno:"NE"})-[:KOMENTAR_NA]->(p)';
+      '",tag:"student",odobreno:"NE"})-[:Odgovor_Na]->(p)';
   }
 
   session
