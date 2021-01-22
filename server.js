@@ -401,7 +401,51 @@ app.get('/vratiTagove', function (req, res) {
       //return driver.close();
     });
 });
+//vraca sve postojece teme
+app.get('/vratiSveTeme', function (req, res) {
+  const session = driver.session();
 
+  function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+  }
+
+  const cypher =
+  'MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE RETURN p,k';
+  let pomocniNiz = [];
+  let jsonOdgovor = [];
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((bundleRezultat) => {
+        console.log(bundleRezultat.get('p').properties);
+        console.log(bundleRezultat.get('k').properties);
+        let objekat = {
+          pitanje: bundleRezultat.get('p').properties,
+          korisnik: bundleRezultat.get('k').properties,
+        };
+        jsonOdgovor.push(objekat);
+        console.log('-----');
+      });
+
+      //res.json(nizKomentaraRezultat);
+      res.json(jsonOdgovor);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      var jedinstveniTagovi = pomocniNiz.filter(onlyUnique);
+      console.log(jedinstveniTagovi);
+      res.json(jedinstveniTagovi);
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
 //prosledis izabrane tagove vrati sva pitanja koja imaju taj tag u sebi
 app.post('/vratiPitanjaSaTagovima', function (req, res) {
   const session = driver.session();
@@ -1271,6 +1315,83 @@ app.put('/prihvatiStaziranje', async (req, res) => {
   await session.run(cypher2);
   session.close();
   res.json('Staziranje prihvaceno');
+});
+//Poziva se da se popune polja kod zubara kad hoce da menja nesto o sebi
+app.get('/vratiInformacijeZubar/:username', async (req, res) => {
+  const usernameZubar = req.params.username;
+  const session = driver.session();
+
+  let cypher = "match(z:Zubar) WHERE z.username=\"" + usernameZubar + "\" return z";
+
+  session
+    .run(cypher)
+    .then((result) => {
+      let resultObject;
+      result.records.map((informationResult) => {
+        console.log(informationResult.get('z').properties);
+      });
+
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+//TREBA DA SE ISTESTIRA-----------------
+//Zubar Promenio informacije o sebi
+app.put('/updateInfoZubar', async (req, res) => {
+  const usernameZubara = req.body.usernameZubara;
+  const novusernameZubara = req.body.novusernameZubara;
+  const sifra = req.body.prezimeKorisnika;
+  const ime = req.body.ime;
+  const prezime = req.body.prezime;
+  const grad = req.body.grad;
+  const telefon = req.body.telefon;
+  let cypher =
+    'match (z:Zubar) WHERE z.username="' +
+    usernameZubara +
+    '" set k.username="' +
+    novusernameZubara +
+    '" k.sifra="' +
+    sifra +
+    '" k.ime="' +
+    ime +
+    '" z.prezime="'+
+    prezime+
+    '" z.grad="'+
+    grad+
+    '" z.telefon="'+
+    telefon;
+  session
+    .run(cypher)
+    .then((result) => {
+      // result.records.map(terminResult=>{
+      //   console.log( terminResult.get("t").properties );
+      // })
+
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
 });
 //#endregion
 
