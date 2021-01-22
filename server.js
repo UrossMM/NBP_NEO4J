@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-// var driver = neo4j.driver(
-//   'neo4j://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-// );
+var driver = neo4j.driver(
+  'neo4j://localhost:7687',
+  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+);
 
-  const driver = neo4j.driver(
-    'bolt://localhost:7687',
-    neo4j.auth.basic('neo4j', 'pass')
-  );
+// const driver = neo4j.driver(
+//   'bolt://localhost:7687',
+//   neo4j.auth.basic('neo4j', 'pass')
+// );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -197,11 +197,12 @@ app.put('/postaniZainteresovan', async (req, res) => {
 //-------
 app.post('/posaljiPrivatnuPoruku', async (req, res) => {
   //logovani student salje svoj ids a kad klikne na zubara kome se obraca uzima se id od tog zubara
-  const idStudenta = req.body.idS;
-  const idZubara = req.body.idZ;
+  const idStudenta = req.body.telefonS;
+  const idZubara = req.body.telefonZ;
   const tekst = req.body.tekst;
   let today = new Date();
-  console.log(today);
+  //let tmp = today.toString();
+  //tmp.slice(0, 26);
   const vremeSlanja = today;
   let session = driver.session();
   //let cypher1 = "create (p:Poruka{tekst:$tekst, vreme:$vreme})";
@@ -209,17 +210,13 @@ app.post('/posaljiPrivatnuPoruku', async (req, res) => {
   //await session.run(cypher1, params1);
   //session.close();
   let cypher2 =
-    'match (s:Student) where id(s)=' +
-    idStudenta +
-    ' match (z:Zubar) where id(z)=' +
-    idZubara +
-    " create (p:Poruka {tekst:'" +
+    "match (s:Student {telefon: $telefonS}) match (z:Zubar {telefon: $telefonZ}) create (p:Poruka {tekst:'" +
     tekst +
     "' , vreme:'" +
     vremeSlanja +
     "'}) create (s)-[r:SALJE]->(p) create(z)-[zr:PRIMA]->(p)";
   console.log(cypher2);
-  await session.run(cypher2);
+  await session.run(cypher2, { telefonS: idStudenta, telefonZ: idZubara });
   session.close();
   res.json('Poruka poslata');
 });
@@ -545,24 +542,48 @@ app.get('/sviZubari', async (req, res) => {
   });
   res.json(sviZubari);
 });
+
+app.get('/sviKorisnici', async (req, res) => {
+  const session = driver.session();
+  let cypher = 'match (k:Korisnik) return k';
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records.length == 0) res.json('Nije pronadjen nijedan korisnik.');
+  let sviKorisnici = [];
+  result.records.forEach((r) => {
+    sviKorisnici.push(r._fields[0].properties);
+  });
+  res.json(sviKorisnici);
+});
+app.get('/sviStudenti', async (req, res) => {
+  const session = driver.session();
+  let cypher = 'match (s:Student) return s';
+  let result = await session.run(cypher);
+  session.close();
+  if (result.records.length == 0) res.json('Nije pronadjen nijedan student.');
+  let sviStudenti = [];
+  result.records.forEach((r) => {
+    sviStudenti.push(r._fields[0].properties);
+  });
+  res.json(sviStudenti);
+});
 //pretraga na forumu
 app.get('/pretraziPoImenu/:ime', async (req, res) => {
   const ime = req.params.ime;
   const session = driver.session();
 
-  let cypher = 'MATCH (k) WHERE k.ime CONTAINS "'+ime+'" return k';
-  let resultArr = []
+  let cypher = 'MATCH (k) WHERE k.ime CONTAINS "' + ime + '" return k';
+  let resultArr = [];
   session
     .run(cypher)
     .then((result) => {
-      console.log(result)
+      console.log(result);
       result.records.map((informationResult) => {
-       
         console.log(informationResult.get('k').properties);
-        resultArr.push(informationResult.get('k').properties)
+        resultArr.push(informationResult.get('k').properties);
       });
-     // res.sendStatus(200);
-      res.json(resultArr)
+      // res.sendStatus(200);
+      res.json(resultArr);
     })
     .catch((e) => {
       // Output the error
@@ -577,7 +598,6 @@ app.get('/pretraziPoImenu/:ime', async (req, res) => {
       //return driver.close();
     });
 });
-
 
 //#endregion
 
@@ -901,7 +921,7 @@ app.post('/odgovoriNaPitanje', function (req, res) {
 app.get('/vratiKomentareOZubaru/:telefon', function (req, res) {
   const session = driver.session();
   let nizKomentaraRezultat = new Array();
-  let telefon = req.param.telefon
+  let telefon = req.param.telefon;
   const cypher =
     'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE z.telefon="' +
     telefon +
@@ -1054,7 +1074,7 @@ app.get('/vratiZainteresovaneStudente/:telefon', function (req, res) {
 
 app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
   const session = driver.session();
-  let telefonZubara = req.params.telefon; 
+  let telefonZubara = req.params.telefon;
   let nizTerminaRezultat = new Array();
   const cypher =
     'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
@@ -1087,27 +1107,58 @@ app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
 app.put('/novaUsluga', async (req, res) => {
   const idZubara = req.body.username;
   const session = driver.session();
-  const cypher1 =
-    'create (u:Usluga {naziv:$naziv, cena:$cena, opis:$opis, idZubara:$idZubara})';
-  let params1 = {
-    naziv: req.body.naziv,
-    cena: req.body.cena,
-    opis: req.body.opis,
-    idZubara: idZubara,
-  };
-  await session.run(cypher1, params1);
-  session.close();
-  const session2 = driver.session();
-  const cypher2 =
+  let naziv = req.body.naziv;
+  let cena = req.body.cena;
+  let opis = req.body.opis;
+
+  const cypher =
     'match (z:Zubar) where z.username="' +
     idZubara +
-    '" match(u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)';
-  //"match (z:Zubar{id:$idZubara}), (u:Usluga{idZubara:$idZubara}) create (z)-[r:NUDI_USLUGU]->(u)";
-  //console.log(cypher2);
-  //console.log(idZubara);
-  await session2.run(cypher2, { idZubara: idZubara });
-  session2.close();
+    '" create (u:Usluga {naziv:"' +
+    naziv +
+    '", cena:"' +
+    cena +
+    '", opis:"' +
+    opis +
+    '", idZubara:"' +
+    idZubara +
+    '"}) create (z)-[r:NUDI_USLUGU]->(u)';
+
+  await session.run(cypher);
+  session.close();
   res.json('Usluga je dodata');
+});
+
+app.get('/vratiUslugeZubara/:username', function (req, res) {
+  const session = driver.session();
+  let username = req.params.username;
+  let nizUslugaRezultat = new Array();
+  const cypher =
+    'MATCH (z:Zubar)-[:NUDI_USLUGU]->(u:Usluga) WHERE z.username="' +
+    username +
+    '" RETURN u';
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((uslugeResult) => {
+        console.log(uslugeResult.get('u').properties);
+        nizUslugaRezultat.push(uslugeResult.get('u').properties);
+      });
+
+      res.json(nizUslugaRezultat);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
 });
 
 app.put('/preporuciZubara', async (req, res) => {
@@ -1230,8 +1281,10 @@ app.post('/obrisiPriajvu', function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
 
-
-  const cypher = 'MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) WHERE ID(p)='+idPitanja+ ' DETACH DELETE prij';
+  const cypher =
+    'MATCH (p:Pitanje)<-[prij:PRIJAVIO]-(k) WHERE ID(p)=' +
+    idPitanja +
+    ' DETACH DELETE prij';
 
   session
     .run(cypher)

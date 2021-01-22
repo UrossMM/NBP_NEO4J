@@ -7,8 +7,8 @@ import { registracija } from '../../actions/auth';
 
 const RegisterStudent = ({ registracija }) => {
   const [formData, setFormData] = useState({
-    // username: '',
-    // sifra: '',
+    username: '',
+    sifra: '',
     ime: '',
     prezime: '',
     grad: '',
@@ -20,8 +20,8 @@ const RegisterStudent = ({ registracija }) => {
   const history = useHistory();
 
   const {
-    // username,
-    // sifra,
+    username,
+    sifra,
     ime,
     prezime,
     grad,
@@ -36,8 +36,8 @@ const RegisterStudent = ({ registracija }) => {
   const onSubmit = (e) => {
     e.preventDefault();
     const zaSlanje = {
-      //   username,
-      //   sifra,
+      username,
+      sifra,
       ime,
       prezime,
       grad,
@@ -46,13 +46,14 @@ const RegisterStudent = ({ registracija }) => {
       prosek,
     };
     registracija(zaSlanje, 'Student');
+    history.push('/');
   };
   return (
     <div className='terza1'>
       <div class='login'>
         <h1>Register</h1>
         <form onSubmit={onSubmit}>
-          {/* <input
+          <input
             type='text'
             name='username'
             placeholder='Username'
@@ -67,7 +68,7 @@ const RegisterStudent = ({ registracija }) => {
             required='required'
             value={sifra}
             onChange={onChange}
-          /> */}
+          />
           <input
             type='text'
             name='ime'

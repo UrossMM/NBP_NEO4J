@@ -1,16 +1,18 @@
 import axios from 'axios';
 import {
   USPESNO_REGISTROVAN,
-  GRESKA_PRILIKOM_REGISTROVANJA,
   USPESNO_LOGOVAN,
   GRESKA_PRI_LOGOVANJU,
   USPESNO_REGISTROVANA_ORDINACIJA,
+  POSTAVI_ORDINACIJU,
+  LOGOUT,
 } from './types';
 
 //Register user
 export const registracija = (podaci, tip) => async (dispatch) => {
   try {
     const res = await axios.post(`/create${tip}`, podaci);
+    console.log(podaci);
     if (tip === 'Ordinacija') {
       dispatch({
         type: USPESNO_REGISTROVANA_ORDINACIJA,
@@ -20,7 +22,7 @@ export const registracija = (podaci, tip) => async (dispatch) => {
     }
     dispatch({
       type: USPESNO_REGISTROVAN,
-      payload: podaci,
+      payload: res.data,
     });
   } catch (err) {
     console.error(err);
@@ -29,15 +31,30 @@ export const registracija = (podaci, tip) => async (dispatch) => {
 
 export const login = (podaci) => async (dispatch) => {
   try {
-    console.log(podaci);
+    const res = await axios.post('/getLoginUser', podaci);
 
     dispatch({
       type: USPESNO_LOGOVAN,
-      payload: podaci,
+      payload: res.data,
+    });
+
+    const res1 = await axios.post('/getOrdinacija', {
+      username: podaci.username,
+    });
+
+    dispatch({
+      type: POSTAVI_ORDINACIJU,
+      payload: res1.data,
     });
   } catch (err) {
     dispatch({
       type: GRESKA_PRI_LOGOVANJU,
     });
   }
+};
+
+export const logout = () => (dispatch) => {
+  dispatch({
+    type: LOGOUT,
+  });
 };

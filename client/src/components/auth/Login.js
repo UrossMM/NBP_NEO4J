@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { login } from '../../actions/auth';
+import { login, logout } from '../../actions/auth';
+import { LOGOUT } from '../../actions/types';
 
-const Login = ({ login }) => {
+const Login = ({ login, logout }) => {
   const [formData, setFormData] = useState({
     username: '',
     sifra: '',
   });
+
+  useEffect(() => {
+    logout();
+  }, []);
 
   const history = useHistory();
 
@@ -25,6 +30,7 @@ const Login = ({ login }) => {
       sifra,
     };
     login(zaSlanje);
+
     history.push('/dashboardZubar');
   };
   return (
@@ -64,6 +70,7 @@ const Login = ({ login }) => {
 
 Login.propTypes = {
   login: PropTypes.func.isRequired,
+  logout: PropTypes.func.isRequired,
 };
 
-export default connect(null, { login })(Login);
+export default connect(null, { login, logout })(Login);

@@ -7,6 +7,9 @@ import Login from './components/auth/Login';
 import RegisterStudent from './components/auth/RegisterStudent';
 import RegisterOrdinacija from './components/auth/RegisterOrdinacija';
 import Zubar from './components/dashboard/Zubar';
+import Usluga from './components/dashboard/Usluga';
+import Poruke from './components/dashboard/Poruke';
+import UrediProfil from './components/dashboard/UrediProfil';
 import './App.css';
 
 const App = () => {
@@ -23,6 +26,9 @@ const App = () => {
             component={RegisterOrdinacija}
           />
           <Route exact path='/dashboardZubar' component={Zubar} />
+          <Route exact path='/dodajUslugu' component={Usluga} />
+          <Route exact path='/porukeZubar/:telefon' component={Poruke} />
+          <Route exact path='/urediProfil' component={UrediProfil} />
         </Switch>
       </Router>
     </Provider>

@@ -187,6 +187,26 @@ a {
   height: 721px;
   background: url('./img/slika2.jpg') no-repeat center;
 }
+.terza3 {
+  width: 1536px;
+  height: 721px;
+  background: #1a2980; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to right,
+    #26d0ce,
+    #1a2980
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to right,
+    #26d0ce,
+    #1a2980
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+.opa {
+  display: flex;
+  flex-direction: column;
+  padding: 50px 50px;
+}
 
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 .btn {
@@ -350,4 +370,28 @@ input:focus {
 }
 .izravnjaj h3:hover {
   color: rgb(47, 151, 151);
+}
+.glavni {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300&display=swap');
+.glavnic {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Noto Sans TC', sans-serif;
+  align-items: center;
+  color: #22262e;
+  border: 2px solid black;
+  width: 40%;
+  min-height: 50px;
+  margin: auto;
+  margin-top: 30px;
+}
+.terza5 {
+  margin-top: 90px;
+}
+.terzinjo {
+  margin-top: 55px;
 }

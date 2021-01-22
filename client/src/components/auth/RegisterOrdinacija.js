@@ -27,6 +27,7 @@ const RegisterOrdinacija = ({ registracija }) => {
       adresa,
     };
     registracija(zaSlanje, 'Ordinacija');
+    history.push('/');
   };
   return (
     <div className='terza1'>
