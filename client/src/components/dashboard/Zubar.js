@@ -31,6 +31,7 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
       <NavbarPageZubar
         telefon={podaciZubar && podaciZubar.telefon}
         ime={podaciOrdinacije && podaciOrdinacije.ime}
+        username={podaciZubar && podaciZubar.username}
       />
       <div className='glavni'>
         {zubari &&

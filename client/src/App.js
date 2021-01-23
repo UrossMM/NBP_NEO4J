@@ -10,6 +10,7 @@ import Zubar from './components/dashboard/Zubar';
 import Usluga from './components/dashboard/Usluga';
 import Poruke from './components/dashboard/Poruke';
 import UrediProfil from './components/dashboard/UrediProfil';
+import TerminiZubar from './components/dashboard/TerminiZubar';
 import './App.css';
 
 const App = () => {
@@ -29,6 +30,11 @@ const App = () => {
           <Route exact path='/dodajUslugu' component={Usluga} />
           <Route exact path='/porukeZubar/:telefon' component={Poruke} />
           <Route exact path='/urediProfil' component={UrediProfil} />
+          <Route
+            exact
+            path='/terminiZubar/:username/:telefon'
+            component={TerminiZubar}
+          />
         </Switch>
       </Router>
     </Provider>

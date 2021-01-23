@@ -409,8 +409,7 @@ app.get('/vratiSveTeme', function (req, res) {
     return self.indexOf(value) === index;
   }
 
-  const cypher =
-  'MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE RETURN p,k';
+  const cypher = 'MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE RETURN p,k';
   let pomocniNiz = [];
   let jsonOdgovor = [];
   session
@@ -1327,7 +1326,8 @@ app.get('/vratiInformacijeZubar/:username', async (req, res) => {
   const usernameZubar = req.params.username;
   const session = driver.session();
 
-  let cypher = "match(z:Zubar) WHERE z.username=\"" + usernameZubar + "\" return z";
+  let cypher =
+    'match(z:Zubar) WHERE z.username="' + usernameZubar + '" return z';
 
   session
     .run(cypher)
@@ -1371,11 +1371,11 @@ app.put('/updateInfoZubar', async (req, res) => {
     sifra +
     '" k.ime="' +
     ime +
-    '" z.prezime="'+
-    prezime+
-    '" z.grad="'+
-    grad+
-    '" z.telefon="'+
+    '" z.prezime="' +
+    prezime +
+    '" z.grad="' +
+    grad +
+    '" z.telefon="' +
     telefon;
   session
     .run(cypher)
@@ -1472,7 +1472,7 @@ app.get('/vratiPrijavljene', function (req, res) {
 });
 
 //Admin brise prijavu (smatra da je prijava ne osnovana (glupa))
-app.post('/obrisiPriajvu', function (req, res) {
+app.post('/obrisiPrijavu', function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
 

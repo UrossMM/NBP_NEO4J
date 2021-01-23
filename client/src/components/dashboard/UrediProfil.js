@@ -1,13 +1,17 @@
 import React, { Fragment, useState } from 'react';
 import { MDBInput, MDBBtn } from 'mdbreact';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import axios from 'axios';
 
-const UrediProfil = () => {
+const UrediProfil = ({ user }) => {
   const [formData, setFormData] = useState({
     username: '',
     sifra: '',
     telefon: '',
+    trenutniUsername: user.username,
   });
-  const { username, sifra, telefon } = formData;
+  const { username, sifra, telefon, trenutniUsername } = formData;
   const onSubmit = async (e) => {
     e.preventDefault();
     const zaSlanje = {
@@ -17,7 +21,7 @@ const UrediProfil = () => {
     };
     console.log(zaSlanje);
   };
-  const onChange = (e) => {
+  const onChange = async (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   return (
@@ -60,5 +64,11 @@ const UrediProfil = () => {
     </Fragment>
   );
 };
+UrediProfil.propTypes = {
+  user: PropTypes.object.isRequired,
+};
+const mapStateToProps = (state) => ({
+  user: state.auth.user,
+});
 
-export default UrediProfil;
+export default connect(mapStateToProps, null)(UrediProfil);
