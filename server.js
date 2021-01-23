@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-var driver = neo4j.driver(
-  'neo4j://localhost:7687',
-  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-);
-
-// const driver = neo4j.driver(
-//   'bolt://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'pass')
+// var driver = neo4j.driver(
+//   'neo4j://localhost:7687',
+//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
 // );
+
+ const driver = neo4j.driver(
+   'bolt://localhost:7687',
+   neo4j.auth.basic('neo4j', 'pass')
+ );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -642,6 +642,41 @@ app.get('/pretraziPoImenu/:ime', async (req, res) => {
     });
 });
 
+app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
+  const idPitanja = req.params.idPitanja;
+  const session = driver.session();
+//MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
+  let cypher = "MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=" + idPitanja + " return k,p,o";
+  let resultArr = [];
+  session
+    .run(cypher)
+    .then((result) => {
+      console.log(result);
+      result.records.map((informationResult) => {
+        let object = {};
+        object.komentar = informationResult.get('k').properties
+        object.pitanje = informationResult.get('p').properties
+        object.odogovor = informationResult.get('o').properties
+        console.log(object);
+        resultArr.push(object);
+      });
+      // res.sendStatus(200);
+      res.json(object);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
 //#endregion
 
 //-------KORISNIK----------
@@ -1116,12 +1151,36 @@ app.put('/potvrdiTermin', async (req, res) => {
     idZubara +
     "'})-[r:IMA]->(t:Termin{datum:'" +
     datumTermina +
-    "'}) set t.potvrdjeno='DA' return t";
+    "'})<-[:ZAKAZAO]-(k:Korisnik) set t.potvrdjeno='DA' return t,k";
   const session = driver.session();
-  await session.run(cypher);
-  session.close();
+  await session
+  .run(cypher)
+  .then((result) => {
+    let object = {}
+    result.records.map((terminKorisnikResult) => {
+      
+      console.log(terminKorisnikResult.get('t').properties);
+      console.log(terminKorisnikResult.get('k').properties);
+      object.infoKorisnika = terminKorisnikResult.get('t').properties
+      object.infoTermina = terminKorisnikResult.get('k').properties
+    });
+
+    res.json(object);
+  })
+  .catch((e) => {
+    // Output the error
+    console.log(e);
+  })
+  .then(() => {
+    // Close the Session
+    return session.close();
+  })
+  .then(() => {
+    // Close the Driver
+    //return driver.close();
+  });
   //let cypher2= "match(t:Termin{datum:"+ datumTermina + "'})"
-  res.json('Termin prihvaen');
+  res.json('Termin prihvacen');
 });
 
 app.get('/vratiTermineZubara/:telefon', function (req, res) {
@@ -1197,6 +1256,38 @@ app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
     'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
     telefonZubara +
     "\" AND t.potvrdjeno='NE' RETURN t";
+  session
+    .run(cypher)
+    .then((result) => {
+      result.records.map((terminResult) => {
+        console.log(terminResult.get('t').properties);
+        nizTerminaRezultat.push(terminResult.get('t').properties);
+      });
+
+      res.json(nizTerminaRezultat);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+app.get('/vratiTermineZubaraOdobrene/:telefon', function (req, res) {
+  const session = driver.session();
+  let telefonZubara = req.params.telefon;
+  let nizTerminaRezultat = new Array();
+  const cypher =
+    'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
+    telefonZubara +
+    "\" AND t.potvrdjeno='DA' RETURN t";
   session
     .run(cypher)
     .then((result) => {
