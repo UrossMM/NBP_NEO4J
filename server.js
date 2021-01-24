@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-// var driver = neo4j.driver(
-//   'neo4j://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-// );
+var driver = neo4j.driver(
+  'neo4j://localhost:7687',
+  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+);
 
- const driver = neo4j.driver(
-   'bolt://localhost:7687',
-   neo4j.auth.basic('neo4j', 'pass')
- );
+//  const driver = neo4j.driver(
+//    'bolt://localhost:7687',
+//    neo4j.auth.basic('neo4j', 'pass')
+//  );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -645,8 +645,11 @@ app.get('/pretraziPoImenu/:ime', async (req, res) => {
 app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
   const idPitanja = req.params.idPitanja;
   const session = driver.session();
-//MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
-  let cypher = "MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=" + idPitanja + " return k,p,o";
+  //MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
+  let cypher =
+    'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
+    idPitanja +
+    ' return k,p,o';
   let resultArr = [];
   session
     .run(cypher)
@@ -654,9 +657,9 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
       console.log(result);
       result.records.map((informationResult) => {
         let object = {};
-        object.komentar = informationResult.get('k').properties
-        object.pitanje = informationResult.get('p').properties
-        object.odogovor = informationResult.get('o').properties
+        object.komentar = informationResult.get('k').properties;
+        object.pitanje = informationResult.get('p').properties;
+        object.odogovor = informationResult.get('o').properties;
         console.log(object);
         resultArr.push(object);
       });
@@ -1154,31 +1157,30 @@ app.put('/potvrdiTermin', async (req, res) => {
     "'})<-[:ZAKAZAO]-(k:Korisnik) set t.potvrdjeno='DA' return t,k";
   const session = driver.session();
   await session
-  .run(cypher)
-  .then((result) => {
-    let object = {}
-    result.records.map((terminKorisnikResult) => {
-      
-      console.log(terminKorisnikResult.get('t').properties);
-      console.log(terminKorisnikResult.get('k').properties);
-      object.infoKorisnika = terminKorisnikResult.get('t').properties
-      object.infoTermina = terminKorisnikResult.get('k').properties
-    });
+    .run(cypher)
+    .then((result) => {
+      let object = {};
+      result.records.map((terminKorisnikResult) => {
+        console.log(terminKorisnikResult.get('t').properties);
+        console.log(terminKorisnikResult.get('k').properties);
+        object.infoKorisnika = terminKorisnikResult.get('t').properties;
+        object.infoTermina = terminKorisnikResult.get('k').properties;
+      });
 
-    res.json(object);
-  })
-  .catch((e) => {
-    // Output the error
-    console.log(e);
-  })
-  .then(() => {
-    // Close the Session
-    return session.close();
-  })
-  .then(() => {
-    // Close the Driver
-    //return driver.close();
-  });
+      res.json(object);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
   //let cypher2= "match(t:Termin{datum:"+ datumTermina + "'})"
   res.json('Termin prihvacen');
 });
@@ -1255,13 +1257,21 @@ app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
   const cypher =
     'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
     telefonZubara +
-    "\" AND t.potvrdjeno='NE' RETURN t";
+    "\" AND t.potvrdjeno='NE' RETURN t,k";
   session
     .run(cypher)
     .then((result) => {
-      result.records.map((terminResult) => {
-        console.log(terminResult.get('t').properties);
-        nizTerminaRezultat.push(terminResult.get('t').properties);
+      result.records.map((terminKorResult) => {
+        let resultObject = {};
+        resultObject.datum = terminKorResult.get('t').properties.datum;
+        resultObject.imeUsluge = terminKorResult.get('t').properties.imeUsluge;
+        resultObject.potvrdjeno = terminKorResult.get(
+          't'
+        ).properties.potvrdjeno;
+        resultObject.ime = terminKorResult.get('k').properties.ime;
+        resultObject.idTermina = terminKorResult.get('t').identity.low;
+        console.log(terminKorResult.get('t').properties);
+        nizTerminaRezultat.push(resultObject);
       });
 
       res.json(nizTerminaRezultat);

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { DayPilotScheduler, DayPilot } from 'daypilot-pro-react';
 import axios from 'axios';
 import { MDBIcon, MDBBtn } from 'mdbreact';
+import nextId from 'react-id-generator';
 
 class TerminiZubar extends Component {
   constructor(props) {
@@ -9,7 +10,7 @@ class TerminiZubar extends Component {
 
     this.state = {
       usluge: [],
-      termini: [],
+      terminiNeodobreni: [],
       ime1: 'Danilo',
       ime2: 'Marija',
       startDate: '2021-01-23',
@@ -39,26 +40,33 @@ class TerminiZubar extends Component {
     };
   }
   componentDidMount() {
-    fetch(`/vratiTermineZubara/${this.props.match.params.telefon}`, {
+    fetch('/vratiTermineZubaraOdobrene/' + this.props.match.params.telefon, {
+      method: 'GET',
+    })
+      .then((res) => res.json())
+      .then((data) =>
+        data.forEach((t) => {
+          let zaTabelu = {
+            id: nextId(),
+            //ovde mitke da mi vrati i ime korisnika koji je potvrdio termin
+            text: 'OKS',
+            start: t.datum,
+            end: t.datum,
+            resource: t.imeUsluge,
+            backColor: '#ff2626',
+          };
+          this.setState((state) => ({
+            events: [...state.events, zaTabelu],
+          }));
+        })
+      );
+    fetch(`/vratiTermineZubaraNeOdobrene/${this.props.match.params.telefon}`, {
       method: 'GET',
     })
       .then((res) => res.json())
       .then((data) => {
-        this.setState({ termini: data });
-        data.forEach((t) => {
-          let zaTabelu = {
-            id: 11,
-            text: t.imeUsluge,
-            start: t.datum,
-            end: t.datum,
-            resource: 'U0',
-          };
-          //ako je potvrdjeno( ===DA) ONDA ULAZIM U GRANU THIS.SETSTATE...
-          console.log(t.potvrdjeno);
-          this.setState((state) => ({
-            events: [...state.events, zaTabelu],
-          }));
-        });
+        // console.log(data);
+        this.setState({ terminiNeodobreni: data });
       });
 
     fetch(`/vratiUslugeZubara/${this.props.match.params.username}`, {
@@ -68,7 +76,7 @@ class TerminiZubar extends Component {
       .then((data) => {
         this.setState({ usluge: data });
         data.forEach((d, index) => {
-          let dodaj = { name: d.naziv, id: 'U' + index };
+          let dodaj = { name: d.naziv, id: d.naziv };
           this.setState((state) => ({
             resources: [...state.resources, dodaj],
           }));
@@ -78,6 +86,16 @@ class TerminiZubar extends Component {
   brisi(vrednost) {
     let div = document.querySelector('.terzar' + vrednost);
     div.remove();
+  }
+  async funkcija(ind) {
+    let obj = {
+      datum: this.state.terminiNeodobreni[ind].datum,
+      telefon: this.props.match.params.telefon,
+    };
+    console.log(obj);
+    const res = await axios.put('/potvrdiTermin', obj);
+    // console.log(res);
+    window.location.reload();
   }
 
   render() {
@@ -110,6 +128,8 @@ class TerminiZubar extends Component {
                   resource: args.resource,
                 });
                 console.log(modal.result);
+                var datum = args.start.toString('yyyy-MM-dd');
+                var telefon = this.props.match.params.telefon;
               }
             );
           }}
@@ -125,15 +145,22 @@ class TerminiZubar extends Component {
         <h3 style={{ color: 'black', marginTop: '20px' }}>
           Termini na cekanju
         </h3>
-        {this.state.termini &&
-          this.state.termini.map((t, index) => (
+        {this.state.terminiNeodobreni &&
+          this.state.terminiNeodobreni.map((t, index) => (
             <div className='terzica'>
               <div className={`terzar${index}`}>
                 {t.datum}&nbsp;&nbsp;&nbsp;
                 <MDBIcon icon='arrow-right' />
                 &nbsp; Ime: &nbsp;
-                {this.state.ime1 + ','}&nbsp;
+                {t.ime + ','}&nbsp;
                 {'Opis:'} &nbsp;{t.imeUsluge}&nbsp; &nbsp;
+                <MDBBtn
+                  color='success'
+                  size='sm'
+                  onClick={() => this.funkcija(index)}
+                >
+                  Potvrdi
+                </MDBBtn>
                 <MDBBtn
                   color='danger'
                   size='sm'
