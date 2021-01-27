@@ -11,6 +11,7 @@ import Usluga from './components/dashboard/Usluga';
 import Poruke from './components/dashboard/Poruke';
 import UrediProfil from './components/dashboard/UrediProfil';
 import TerminiZubar from './components/dashboard/TerminiZubar';
+import ZubarPogled from './components/dashboard/ZubarPogled';
 import './App.css';
 
 const App = () => {
@@ -34,6 +35,11 @@ const App = () => {
             exact
             path='/terminiZubar/:username/:telefon'
             component={TerminiZubar}
+          />
+          <Route
+            exact
+            path='/zubarPogled/:username/:usernameTrenutnog'
+            component={ZubarPogled}
           />
         </Switch>
       </Router>

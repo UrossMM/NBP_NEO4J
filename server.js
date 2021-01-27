@@ -1380,22 +1380,19 @@ app.get('/vratiUslugeZubara/:username', function (req, res) {
 });
 
 app.put('/preporuciZubara', async (req, res) => {
-  const idZubara = req.body.username;
-  const oznaceni = req.body.oznaceni; // niz idjeva kao da imas listu svih zubara i tu kao cekiras kog da preporucujes i vadis im usernameove i ofarba se u crveno
-  console.log(typeof oznaceni);
-  oznaceni.forEach(async (o) => {
-    console.log(o);
-    const session = driver.session();
-    let cypher =
-      "match (z:Zubar{username:'" +
-      idZubara +
-      "'}) " +
-      "match(preporucen:Zubar{username:'" +
-      o +
-      "' }) create (z)-[r:PREPORUCUJE]->(preporucen)";
-    await session.run(cypher);
-    session.close();
-  });
+  const idZubara = req.body.usernameZubaraTrenutnog;
+  const oznaceni = req.body.usernameZubaraZaPreporuku;
+  const session = driver.session();
+  let cypher =
+    "match (z:Zubar{username:'" +
+    idZubara +
+    "'}) " +
+    "match(preporucen:Zubar{username:'" +
+    oznaceni +
+    "' }) create (z)-[r:PREPORUCUJE]->(preporucen)";
+  await session.run(cypher);
+  session.close();
+
   res.json(true);
 });
 
