@@ -29,7 +29,7 @@ const App = () => {
             component={RegisterOrdinacija}
           />
           <Route exact path='/dashboardZubar' component={Zubar} />
-          <Route exact path='/dodajUslugu' component={Usluga} />
+          <Route exact path='/dodajUslugu/:username' component={Usluga} />
           <Route exact path='/porukeZubar/:telefon' component={Poruke} />
           <Route exact path='/urediProfil' component={UrediProfil} />
           <Route

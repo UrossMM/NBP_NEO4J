@@ -112,7 +112,10 @@ class NavbarPageZubar extends Component {
             </MDBNavbarNav>
             <MDBNavbarNav right>
               <MDBNavItem>
-                <MDBNavLink className='waves-effect waves-' to='/dodajUslugu'>
+                <MDBNavLink
+                  className='waves-effect waves-'
+                  to={`/dodajUslugu/${this.props.username}`}
+                >
                   <MDBIcon icon='tooth' className='mr-1' />
                   Dodaj uslugu
                 </MDBNavLink>

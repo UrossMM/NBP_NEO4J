@@ -6,8 +6,7 @@ const Komentari = (props) => {
   const [komentari, setKomentari] = useState([]);
   useEffect(async () => {
     const res = await axios.get(
-      'http://localhost:5000/vratiKomentareOZubaru/' +
-        props.match.params.telefon
+      '/vratiKomentareOZubaru/' + props.match.params.telefon
     );
     setKomentari(res.data);
   }, []);
@@ -17,7 +16,9 @@ const Komentari = (props) => {
         {komentari.map((k) => (
           <MDBListGroupItem>
             <div className='d-flex w-100 justify-content-between'>
-              <h5 className='mb-1'>Komentarisao:{k.ime}</h5>
+              <h5 className='mb-1'>
+                Komentarisao:&nbsp;&nbsp;{k.imeKorisnika}
+              </h5>
               <small>3 days ago</small>
             </div>
             <p className='mb-1 terrr'>{k.komentar}</p>

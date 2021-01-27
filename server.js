@@ -1080,15 +1080,18 @@ app.get('/vratiKomentareOZubaru/:telefon', function (req, res) {
   const cypher =
     'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE z.telefon="' +
     telefon +
-    '" RETURN kom';
+    '" RETURN kom,k';
   session
     .run(cypher)
     .then((result) => {
-      result.records.map((komentariResult) => {
+      result.records.map((komentariKorisnikResult) => {
         let objekat = {
-          id: komentariResult.get('kom').identity.low,
-          ocena: komentariResult.get('kom').properties.ocena,
-          komentar: komentariResult.get('kom').properties.komentar,
+          id: komentariKorisnikResult.get('kom').identity.low,
+          ocena: komentariKorisnikResult.get('kom').properties.ocena,
+          komentar: komentariKorisnikResult.get('kom').properties.komentar,
+          imeKorisnika: komentariKorisnikResult.get('k').properties.ime,
+          usernameKorisnika: komentariKorisnikResult.get('k').properties
+            .username,
         };
 
         console.log(objekat);
