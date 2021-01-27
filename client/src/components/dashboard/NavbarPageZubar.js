@@ -134,7 +134,9 @@ class NavbarPageZubar extends Component {
                   </MDBDropdownToggle>
                   <MDBDropdownMenu className='dropdown-default' right>
                     <MDBDropdownItem>
-                      <Link to='/komentariZubar'>Komentari</Link>
+                      <Link to={`/zubarKomentari/${this.props.telefon}`}>
+                        Komentari
+                      </Link>
                     </MDBDropdownItem>
                     <MDBDropdownItem>
                       <Link

@@ -16,13 +16,13 @@ const ZubarPogled = (props) => {
       'http://localhost:5000/vratiUslugeZubara/' + props.match.params.username
     );
     setUsluge(res.data);
+    const dugme = document.getElementById('dugme');
+    const res1 = await axios.get(
+      `/daLiPreporucujem/${props.match.params.usernameTrenutnog}/${props.match.params.username}`
+    );
+    dugme.disabled = res1.data;
   }, []);
   const klik = async () => {
-    console.log('Tu sam');
-    const dugme = document.getElementById('dugme');
-    // if (res.data === true) {
-    //   dugme.disabled = true;
-    // }
     const res = await axios.put('http://localhost:5000/preporuciZubara', {
       usernameZubaraTrenutnog: props.match.params.usernameTrenutnog,
       usernameZubaraZaPreporuku: props.match.params.username,

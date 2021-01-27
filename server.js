@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-// var driver = neo4j.driver(
-//   'neo4j://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-// );
+var driver = neo4j.driver(
+  'neo4j://localhost:7687',
+  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+);
 
- const driver = neo4j.driver(
-   'bolt://localhost:7687',
-   neo4j.auth.basic('neo4j', 'pass')
- );
+//  const driver = neo4j.driver(
+//    'bolt://localhost:7687',
+//    neo4j.auth.basic('neo4j', 'pass')
+//  );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -1257,15 +1257,16 @@ app.get('/daLiPreporucujem/:usernamMoj/:usernameDrugog', function (req, res) {
   const cypher =
     'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.username="' +
     usernameMoj +
-    "\" AND z2.username=\""+usernameDrugog+"\" RETURN p";
+    '" AND z2.username="' +
+    usernameDrugog +
+    '" RETURN p';
 
   session
     .run(cypher)
     .then((result) => {
-      let daLiPreporucujem = false
-      if(result.records[0]!=null)
-      daLiPreporucujem = true;
-     res.json(daLiPreporucujem)
+      let daLiPreporucujem = false;
+      if (result.records[0] != null) daLiPreporucujem = true;
+      res.json(daLiPreporucujem);
     })
     .catch((e) => {
       // Output the error
@@ -1394,12 +1395,14 @@ app.put('/obrisiUslugu', async (req, res) => {
   const cypher =
     'match (z:Zubar)-[:NUDI_USLUGU]->(u:Usluga) where z.username="' +
     usernameZubara +
-    '" AND u.naziv ="' +nazivUsluge +'" DETACH DELETE u' 
+    '" AND u.naziv ="' +
+    nazivUsluge +
+    '" DETACH DELETE u';
 
-    session
+  session
     .run(cypher)
     .then((result) => {
-      res.json("Usluga je obrisana");
+      res.json('Usluga je obrisana');
     })
     .catch((e) => {
       // Output the error

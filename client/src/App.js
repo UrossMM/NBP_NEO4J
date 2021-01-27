@@ -12,6 +12,7 @@ import Poruke from './components/dashboard/Poruke';
 import UrediProfil from './components/dashboard/UrediProfil';
 import TerminiZubar from './components/dashboard/TerminiZubar';
 import ZubarPogled from './components/dashboard/ZubarPogled';
+import Komentari from './components/dashboard/Komentari';
 import './App.css';
 
 const App = () => {
@@ -41,6 +42,7 @@ const App = () => {
             path='/zubarPogled/:username/:usernameTrenutnog'
             component={ZubarPogled}
           />
+          <Route exact path='/zubarKomentari/:telefon' component={Komentari} />
         </Switch>
       </Router>
     </Provider>

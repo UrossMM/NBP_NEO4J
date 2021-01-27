@@ -416,3 +416,12 @@ input:focus {
   margin-top: 120px;
   margin-left: 50px;
 }
+.comm {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+}
+.terrr {
+  color: red;
+}
