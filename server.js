@@ -1254,14 +1254,10 @@ app.get('/daLiPreporucujem/:usernamMoj/:usernameDrugog', function (req, res) {
   let usernameMoj = req.params.usernamMoj;
   let usernameDrugog = req.params.usernameDrugog;
   let nizTerminaRezultat = new Array();
-  // const cypher =
-  //   'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.username="' +
-  //   usernameMoj +
-  //   "\" AND z2.username=\""+usernameDrugog+"\" RETURN p";
   const cypher =
-    'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.broj="' +
+    'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.username="' +
     usernameMoj +
-    "\" AND z2.broj=\""+usernameDrugog+"\" RETURN p";
+    "\" AND z2.username=\""+usernameDrugog+"\" RETURN p";
 
   session
     .run(cypher)
@@ -1388,6 +1384,35 @@ app.put('/novaUsluga', async (req, res) => {
   await session.run(cypher);
   session.close();
   res.json('Usluga je dodata');
+});
+
+app.put('/obrisiUslugu', async (req, res) => {
+  const usernameZubara = req.body.usernameZubara;
+  const session = driver.session();
+  let nazivUsluge = req.body.nazivUsluge;
+
+  const cypher =
+    'match (z:Zubar)-[:NUDI_USLUGU]->(u:Usluga) where z.username="' +
+    usernameZubara +
+    '" AND u.naziv ="' +nazivUsluge +'" DETACH DELETE u' 
+
+    session
+    .run(cypher)
+    .then((result) => {
+      res.json("Usluga je obrisana");
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
 });
 
 app.get('/vratiUslugeZubara/:username', function (req, res) {
