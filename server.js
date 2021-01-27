@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-var driver = neo4j.driver(
-  'neo4j://localhost:7687',
-  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-);
+// var driver = neo4j.driver(
+//   'neo4j://localhost:7687',
+//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+// );
 
-//  const driver = neo4j.driver(
-//    'bolt://localhost:7687',
-//    neo4j.auth.basic('neo4j', 'pass')
-//  );
+ const driver = neo4j.driver(
+   'bolt://localhost:7687',
+   neo4j.auth.basic('neo4j', 'pass')
+ );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -775,15 +775,15 @@ app.post('/ostaviKomentar', function (req, res) {
   let ocena = req.body.ocena;
   let komentar = req.body.komentar;
   const cypher =
-    'MATCH (z:Zubar),(k:Korisnik) WHERE z.telefon=' +
+    'MATCH (z:Zubar),(k:Korisnik) WHERE z.telefon="' +
     telefonZubara +
-    'AND k.telefon=' +
+    '"AND k.telefon="' +
     telefonKorisnika +
-    "'CREATE (k)-[:OSTAVIO]->(kom:Komentar {ocena:'" +
+    '" CREATE (k)-[:OSTAVIO]->(kom:Komentar {ocena:"' +
     ocena +
-    "',komentar:'" +
+    '",komentar:"' +
     komentar +
-    "'})-[:NA]->(z)";
+    '"})-[:NA]->(z)';
 
   session
     .run(cypher)
@@ -819,7 +819,7 @@ app.post('/ostaviKomentarNaPitanje', function (req, res) {
     idPitanja +
     ' AND k.telefon=' +
     idKorisnika +
-    " CREATE (k)-[:OSTAVIO]->(kom:Komentar {komentar:'" +
+    "' CREATE (k)-[:OSTAVIO]->(kom:Komentar {komentar:'" +
     komentar +
     "'})-[:KOMENTAR_NA]->(p)";
 
@@ -1249,6 +1249,41 @@ app.get('/vratiZainteresovaneStudente/:telefon', function (req, res) {
       //return driver.close();
     });
 });
+app.get('/daLiPreporucujem/:usernamMoj/:usernameDrugog', function (req, res) {
+  const session = driver.session();
+  let usernameMoj = req.params.usernamMoj;
+  let usernameDrugog = req.params.usernameDrugog;
+  let nizTerminaRezultat = new Array();
+  // const cypher =
+  //   'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.username="' +
+  //   usernameMoj +
+  //   "\" AND z2.username=\""+usernameDrugog+"\" RETURN p";
+  const cypher =
+    'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.broj="' +
+    usernameMoj +
+    "\" AND z2.broj=\""+usernameDrugog+"\" RETURN p";
+
+  session
+    .run(cypher)
+    .then((result) => {
+      let daLiPreporucujem = false
+      if(result.records[0]!=null)
+      daLiPreporucujem = true;
+     res.json(daLiPreporucujem)
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
 
 app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
   const session = driver.session();
@@ -1297,13 +1332,21 @@ app.get('/vratiTermineZubaraOdobrene/:telefon', function (req, res) {
   const cypher =
     'MATCH (z:Zubar)-[:IMA]->(t:Termin)<-[:ZAKAZAO]-(k:Korisnik) WHERE z.telefon="' +
     telefonZubara +
-    "\" AND t.potvrdjeno='DA' RETURN t";
+    "\" AND t.potvrdjeno='DA' RETURN t,k";
   session
     .run(cypher)
     .then((result) => {
-      result.records.map((terminResult) => {
-        console.log(terminResult.get('t').properties);
-        nizTerminaRezultat.push(terminResult.get('t').properties);
+      result.records.map((terminKorResult) => {
+        let resultObject = {};
+        resultObject.datum = terminKorResult.get('t').properties.datum;
+        resultObject.imeUsluge = terminKorResult.get('t').properties.imeUsluge;
+        resultObject.potvrdjeno = terminKorResult.get(
+          't'
+        ).properties.potvrdjeno;
+        resultObject.ime = terminKorResult.get('k').properties.ime;
+        resultObject.idTermina = terminKorResult.get('t').identity.low;
+        console.log(terminKorResult.get('t').properties);
+        nizTerminaRezultat.push(resultObject);
       });
 
       res.json(nizTerminaRezultat);
