@@ -13,6 +13,7 @@ import UrediProfil from './components/dashboard/UrediProfil';
 import TerminiZubar from './components/dashboard/TerminiZubar';
 import ZubarPogled from './components/dashboard/ZubarPogled';
 import Komentari from './components/dashboard/Komentari';
+import Zahtevi from './components/dashboard/ZahteviStudenata';
 import './App.css';
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
             component={ZubarPogled}
           />
           <Route exact path='/zubarKomentari/:telefon' component={Komentari} />
+          <Route exact path='/zahteviStudenata/:telefon' component={Zahtevi} />
         </Switch>
       </Router>
     </Provider>

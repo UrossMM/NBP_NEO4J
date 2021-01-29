@@ -148,6 +148,11 @@ class NavbarPageZubar extends Component {
                         Pogledaj termine
                       </Link>
                     </MDBDropdownItem>
+                    <MDBDropdownItem>
+                      <Link to={`/zahteviStudenata/${this.props.telefon}`}>
+                        Zahtevi studenata
+                      </Link>
+                    </MDBDropdownItem>
                     {/* <MDBDropdownItem>
                       <Link to='/urediProfil'>Uredi profil</Link>
                     </MDBDropdownItem> */}

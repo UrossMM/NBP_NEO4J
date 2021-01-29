@@ -425,3 +425,14 @@ input:focus {
 .terrr {
   color: red;
 }
+.red5 {
+  display: flex;
+  flex-direction: row;
+  border: 2px solid black;
+  justify-content: center;
+  align-items: center;
+  margin: 35px;
+}
+.pomerimalo {
+  margin-top: 9px;
+}
