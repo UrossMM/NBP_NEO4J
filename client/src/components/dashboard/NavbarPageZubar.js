@@ -112,7 +112,10 @@ class NavbarPageZubar extends Component {
             </MDBNavbarNav>
             <MDBNavbarNav right>
               <MDBNavItem>
-                <MDBNavLink className='waves-effect waves-' to='/dodajUslugu'>
+                <MDBNavLink
+                  className='waves-effect waves-'
+                  to={`/dodajUslugu/${this.props.username}`}
+                >
                   <MDBIcon icon='tooth' className='mr-1' />
                   Dodaj uslugu
                 </MDBNavLink>
@@ -134,13 +137,20 @@ class NavbarPageZubar extends Component {
                   </MDBDropdownToggle>
                   <MDBDropdownMenu className='dropdown-default' right>
                     <MDBDropdownItem>
-                      <Link to='/komentariZubar'>Komentari</Link>
+                      <Link to={`/zubarKomentari/${this.props.telefon}`}>
+                        Komentari
+                      </Link>
                     </MDBDropdownItem>
                     <MDBDropdownItem>
                       <Link
                         to={`/terminiZubar/${this.props.username}/${this.props.telefon}`}
                       >
                         Pogledaj termine
+                      </Link>
+                    </MDBDropdownItem>
+                    <MDBDropdownItem>
+                      <Link to={`/zahteviStudenata/${this.props.telefon}`}>
+                        Zahtevi studenata
                       </Link>
                     </MDBDropdownItem>
                     {/* <MDBDropdownItem>

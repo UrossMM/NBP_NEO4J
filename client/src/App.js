@@ -11,6 +11,9 @@ import Usluga from './components/dashboard/Usluga';
 import Poruke from './components/dashboard/Poruke';
 import UrediProfil from './components/dashboard/UrediProfil';
 import TerminiZubar from './components/dashboard/TerminiZubar';
+import ZubarPogled from './components/dashboard/ZubarPogled';
+import Komentari from './components/dashboard/Komentari';
+import Zahtevi from './components/dashboard/ZahteviStudenata';
 import './App.css';
 
 const App = () => {
@@ -27,7 +30,7 @@ const App = () => {
             component={RegisterOrdinacija}
           />
           <Route exact path='/dashboardZubar' component={Zubar} />
-          <Route exact path='/dodajUslugu' component={Usluga} />
+          <Route exact path='/dodajUslugu/:username' component={Usluga} />
           <Route exact path='/porukeZubar/:telefon' component={Poruke} />
           <Route exact path='/urediProfil' component={UrediProfil} />
           <Route
@@ -35,6 +38,13 @@ const App = () => {
             path='/terminiZubar/:username/:telefon'
             component={TerminiZubar}
           />
+          <Route
+            exact
+            path='/zubarPogled/:username/:usernameTrenutnog'
+            component={ZubarPogled}
+          />
+          <Route exact path='/zubarKomentari/:telefon' component={Komentari} />
+          <Route exact path='/zahteviStudenata/:telefon' component={Zahtevi} />
         </Switch>
       </Router>
     </Provider>

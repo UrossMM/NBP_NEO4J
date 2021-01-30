@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import axios from 'axios';
-import { SVE_PORUKE, SVE_USLUGE } from '../../actions/types';
 
 import {
   MDBContainer,
@@ -16,48 +12,42 @@ import {
   MDBBadge,
 } from 'mdbreact';
 
-const akcija = (usluga) => (dispatch) => {
-  console.log(usluga);
-  dispatch({
-    type: SVE_PORUKE,
-    payload: usluga,
-  });
-};
-
-const Usluga = ({ user, sveUsluge, akcija }) => {
+const Usluga = (props) => {
   const [uslugaPodaci, setUslugaPodaci] = useState({
     naziv: '',
     cena: '',
     opis: '',
-    username: user.username,
   });
+  const [usluge, setUsluge] = useState([]);
+  useEffect(async () => {
+    const res = await axios.get(
+      `/vratiUslugeZubara/${props.match.params.username}`
+    );
+    setUsluge(res.data);
+  }, []);
 
-  const { naziv, cena, opis, username } = uslugaPodaci;
+  const { naziv, cena, opis } = uslugaPodaci;
   const onSubmit = async (e) => {
     e.preventDefault();
     const zaSlanje = {
-      username,
+      username: props.match.params.username,
       naziv,
       cena,
       opis,
     };
-    console.log(zaSlanje);
-    const element = (
-      <MDBListGroupItem className='d-flex justify-content-between align-items-center'>
-        {opis}
-        <MDBBadge color='primary' pill>
-          {cena}
-        </MDBBadge>
-      </MDBListGroupItem>
-    );
-    ReactDOM.render(element, document.getElementById('root1'));
 
-    const res = await axios.put('/novaUsluga', zaSlanje);
-    console.log(res.data);
-    akcija(zaSlanje);
+    await axios.put('/novaUsluga', zaSlanje);
+    window.location.reload();
   };
   const onChange = (e) =>
     setUslugaPodaci({ ...uslugaPodaci, [e.target.name]: e.target.value });
+  const klik = async (ind) => {
+    await axios.put('/obrisiUslugu', {
+      usernameZubara: props.match.params.username,
+      nazivUsluge: usluge[ind].naziv,
+    });
+    window.location.reload();
+  };
 
   return (
     <MDBContainer className='terza5'>
@@ -112,20 +102,22 @@ const Usluga = ({ user, sveUsluge, akcija }) => {
         <MDBCol md='6' className='terza6'>
           <p className='h4  mb-4'>Lista usluga koje nudim</p>
           <MDBListGroup className='terzinjo' style={{ width: '31rem' }}>
-            {sveUsluge.map((usl) => (
+            {usluge.map((usl, index) => (
               <MDBListGroupItem className='d-flex justify-content-between align-items-center'>
                 {usl.naziv}
                 <MDBBadge color='primary' pill>
                   {usl.cena}
+                  <MDBBtn
+                    id={usl.naziv}
+                    onClick={() => klik(index)}
+                    size='sm'
+                    gradient='peach'
+                  >
+                    Brisi
+                  </MDBBtn>
                 </MDBBadge>
               </MDBListGroupItem>
             ))}
-            <MDBListGroupItem
-              className='d-flex justify-content-between align-items-center'
-              id='root1'
-            >
-              <MDBBadge color='primary' pill></MDBBadge>
-            </MDBListGroupItem>
           </MDBListGroup>
         </MDBCol>
       </MDBRow>
@@ -133,15 +125,4 @@ const Usluga = ({ user, sveUsluge, akcija }) => {
   );
 };
 
-Usluga.propTypes = {
-  user: PropTypes.object.isRequired,
-  sveUsluge: PropTypes.array.isRequired,
-  akcija: PropTypes.func.isRequired,
-};
-
-const mapStateToProps = (state) => ({
-  user: state.auth.user,
-  sveUsluge: state.dashboard.sveUsluge,
-});
-
-export default connect(mapStateToProps, { akcija })(Usluga);
+export default Usluga;

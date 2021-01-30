@@ -399,3 +399,40 @@ input:focus {
   margin-top: 20px;
   color: red;
 }
+.pogled {
+  display: flex;
+  flex-direction: column;
+}
+.gore {
+  text-align: center;
+  margin-top: 20px;
+  color: #1161ee;
+  font-weight: 500;
+}
+.dole {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-top: 120px;
+  margin-left: 50px;
+}
+.comm {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+}
+.terrr {
+  color: red;
+}
+.red5 {
+  display: flex;
+  flex-direction: row;
+  border: 2px solid black;
+  justify-content: center;
+  align-items: center;
+  margin: 35px;
+}
+.pomerimalo {
+  margin-top: 9px;
+}

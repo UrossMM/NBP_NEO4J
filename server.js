@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-// var driver = neo4j.driver(
-//   'neo4j://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-// );
+var driver = neo4j.driver(
+  'neo4j://localhost:7687',
+  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+);
 
- const driver = neo4j.driver(
-   'bolt://localhost:7687',
-   neo4j.auth.basic('neo4j', 'pass')
- );
+//  const driver = neo4j.driver(
+//    'bolt://localhost:7687',
+//    neo4j.auth.basic('neo4j', 'pass')
+//  );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -1091,8 +1091,9 @@ app.get('/vratiKomentareOZubaru/:telefon', function (req, res) {
           id: komentariKorisnikResult.get('kom').identity.low,
           ocena: komentariKorisnikResult.get('kom').properties.ocena,
           komentar: komentariKorisnikResult.get('kom').properties.komentar,
-          imeKorisnika:komentariKorisnikResult.get(k).properties.ime,
-          usernameKorisnika:komentariKorisnikResult.get(k).properties.username
+          imeKorisnika:komentariKorisnikResult.get('k').properties.ime,
+          usernameKorisnika:komentariKorisnikResult.get('k').properties.username
+
         };
 
         console.log(objekat);
@@ -1261,15 +1262,16 @@ app.get('/daLiPreporucujem/:usernamMoj/:usernameDrugog', function (req, res) {
   const cypher =
     'MATCH (z:Zubar)-[p:PREPORUCUJE]->(z2:Zubar) WHERE z.username="' +
     usernameMoj +
-    "\" AND z2.username=\""+usernameDrugog+"\" RETURN p";
+    '" AND z2.username="' +
+    usernameDrugog +
+    '" RETURN p';
 
   session
     .run(cypher)
     .then((result) => {
-      let daLiPreporucujem = false
-      if(result.records[0]!=null)
-      daLiPreporucujem = true;
-     res.json(daLiPreporucujem)
+      let daLiPreporucujem = false;
+      if (result.records[0] != null) daLiPreporucujem = true;
+      res.json(daLiPreporucujem);
     })
     .catch((e) => {
       // Output the error
@@ -1408,12 +1410,14 @@ app.put('/obrisiUslugu', async (req, res) => {
   const cypher =
     'match (z:Zubar)-[:NUDI_USLUGU]->(u:Usluga) where z.username="' +
     usernameZubara +
-    '" AND u.naziv ="' +nazivUsluge +'" DETACH DELETE u' 
+    '" AND u.naziv ="' +
+    nazivUsluge +
+    '" DETACH DELETE u';
 
-    session
+  session
     .run(cypher)
     .then((result) => {
-      res.json("Usluga je obrisana");
+      res.json('Usluga je obrisana');
     })
     .catch((e) => {
       // Output the error
@@ -1462,22 +1466,19 @@ app.get('/vratiUslugeZubara/:username', function (req, res) {
 });
 
 app.put('/preporuciZubara', async (req, res) => {
-  const idZubara = req.body.username;
-  const oznaceni = req.body.oznaceni; // niz idjeva kao da imas listu svih zubara i tu kao cekiras kog da preporucujes i vadis im usernameove i ofarba se u crveno
-  console.log(typeof oznaceni);
-  oznaceni.forEach(async (o) => {
-    console.log(o);
-    const session = driver.session();
-    let cypher =
-      "match (z:Zubar{username:'" +
-      idZubara +
-      "'}) " +
-      "match(preporucen:Zubar{username:'" +
-      o +
-      "' }) create (z)-[r:PREPORUCUJE]->(preporucen)";
-    await session.run(cypher);
-    session.close();
-  });
+  const idZubara = req.body.usernameZubaraTrenutnog;
+  const oznaceni = req.body.usernameZubaraZaPreporuku;
+  const session = driver.session();
+  let cypher =
+    "match (z:Zubar{username:'" +
+    idZubara +
+    "'}) " +
+    "match(preporucen:Zubar{username:'" +
+    oznaceni +
+    "' }) create (z)-[r:PREPORUCUJE]->(preporucen)";
+  await session.run(cypher);
+  session.close();
+
   res.json(true);
 });
 

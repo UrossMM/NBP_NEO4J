@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import NavbarPageZubar from './NavbarPageZubar';
 import { connect } from 'react-redux';
@@ -22,6 +23,7 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
   useEffect(() => {
     setPodaciOrdinacije(ordinacija);
   }, [ordinacija]);
+  const history = useHistory();
   // useEffect(() => {
   //   setZubariNiz(zubari);
   // }, [zubari]);
@@ -41,7 +43,19 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
                 <i class='fas fa-fw fa-tooth'></i>
                 {zubar.ime} {zubar.prezime}
               </h3>
-              <MDBBtn color='default'>Pogledaj Profil</MDBBtn>
+              <MDBBtn
+                color='default'
+                onClick={() =>
+                  history.push(
+                    '/zubarPogled/' +
+                      zubar.username +
+                      '/' +
+                      podaciZubar.username
+                  )
+                }
+              >
+                Pogledaj Profil
+              </MDBBtn>
             </div>
           ))}
         {korisnici &&

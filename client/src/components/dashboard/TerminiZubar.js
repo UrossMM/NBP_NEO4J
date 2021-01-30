@@ -49,7 +49,7 @@ class TerminiZubar extends Component {
           let zaTabelu = {
             id: nextId(),
             //ovde mitke da mi vrati i ime korisnika koji je potvrdio termin
-            text: 'OKS',
+            text: t.ime,
             start: t.datum,
             end: t.datum,
             resource: t.imeUsluge,
