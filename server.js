@@ -194,6 +194,46 @@ app.put('/postaniZainteresovan', async (req, res) => {
   res.json(true);
 });
 
+//pitanja na koja je odgovorio student
+app.get('/pitanjaOdgovorioStudent/:telefonStudenta', async (req, res) => {
+  const telefonStudenta = req.params.telefonStudenta;
+
+  const session = driver.session();
+  let arrResult = [];
+  let cypher =
+    'match(s:Student)-[:ODGOVORIO]->(o:Odgovor)-[:Odgovor_Na]->(p:Pitanje) WHERE s.telefon="' +
+    telefonStudenta +
+    '" return p,o';
+
+  session
+    .run(cypher)
+    .then((result) => {
+      let resultObject;
+      result.records.map((informationResult) => {
+        let object = {};
+
+        object.pitanje = informationResult.get('p').properties.tekstPitanja;
+        object.odgovor = informationResult.get('o').properties.odgovor;
+        console.log(object);
+        arrResult.push(object);
+      });
+      res.json(arrResult);
+      res.sendStatus(200);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
 //-------
 app.post('/posaljiPrivatnuPoruku', async (req, res) => {
   //logovani student salje svoj ids a kad klikne na zubara kome se obraca uzima se id od tog zubara
@@ -945,14 +985,14 @@ app.put('/updateInfoKorisnik', async (req, res) => {
 });
 
 //pitanja koje je postavio korisnik
-app.get('/pitanjaPostavioKorisnik/:id', async (req, res) => {
-  const idKorisnika = req.params.id;
+app.get('/pitanjaPostavioKorisnik/:telefon', async (req, res) => {
+  const telefonKorisnika = req.params.telefon;
   const session = driver.session();
   let arrResult = [];
   let cypher =
-    'match(k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE k.telefon' +
-    idKorisnika +
-    ' return p';
+    'match(k:Korisnik)-[:POSTAVIO]->(p:Pitanje) WHERE k.telefon="' +
+    telefonKorisnika +
+    '" return p';
 
   session
     .run(cypher)
@@ -978,45 +1018,7 @@ app.get('/pitanjaPostavioKorisnik/:id', async (req, res) => {
       //return driver.close();
     });
 });
-//pitanja na koja je odgovorio student
-app.get('/pitanjaOdgovorioStudent/:id', async (req, res) => {
-  const idStudenta = req.params.id;
 
-  const session = driver.session();
-  let arrResult = [];
-  let cypher =
-    'match(s:Student)-[:ODGOVORIO]->(o:Odgovor)-[:Odgovor_Na]->(p:Pitanje) WHERE s.telefon="' +
-    idStudenta +
-    '" return p,o';
-
-  session
-    .run(cypher)
-    .then((result) => {
-      let resultObject;
-      result.records.map((informationResult) => {
-        let object = {};
-
-        object.pitanje = informationResult.get('p').properties.tekstPitanja;
-        object.odgovor = informationResult.get('o').properties.odgovor;
-        console.log(object);
-        arrResult.push(object);
-      });
-      res.json(arrResult);
-      res.sendStatus(200);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
 //#endregion
 
 //---------ZUBAR----------
@@ -1080,15 +1082,17 @@ app.get('/vratiKomentareOZubaru/:telefon', function (req, res) {
   const cypher =
     'MATCH (k:Korisnik)-[:OSTAVIO]->(kom:Komentar)-[:NA]->(z:Zubar) WHERE z.telefon="' +
     telefon +
-    '" RETURN kom';
+    '" RETURN kom,k';
   session
     .run(cypher)
     .then((result) => {
-      result.records.map((komentariResult) => {
+      result.records.map((komentariKorisnikResult) => {
         let objekat = {
-          id: komentariResult.get('kom').identity.low,
-          ocena: komentariResult.get('kom').properties.ocena,
-          komentar: komentariResult.get('kom').properties.komentar,
+          id: komentariKorisnikResult.get('kom').identity.low,
+          ocena: komentariKorisnikResult.get('kom').properties.ocena,
+          komentar: komentariKorisnikResult.get('kom').properties.komentar,
+          imeKorisnika:komentariKorisnikResult.get(k).properties.ime,
+          usernameKorisnika:komentariKorisnikResult.get(k).properties.username
         };
 
         console.log(objekat);
@@ -1296,9 +1300,7 @@ app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
         let resultObject = {};
         resultObject.datum = terminKorResult.get('t').properties.datum;
         resultObject.imeUsluge = terminKorResult.get('t').properties.imeUsluge;
-        resultObject.potvrdjeno = terminKorResult.get(
-          't'
-        ).properties.potvrdjeno;
+        resultObject.potvrdjeno = terminKorResult.get('t').properties.potvrdjeno;
         resultObject.ime = terminKorResult.get('k').properties.ime;
         resultObject.idTermina = terminKorResult.get('t').identity.low;
         console.log(terminKorResult.get('t').properties);
@@ -1336,9 +1338,7 @@ app.get('/vratiTermineZubaraOdobrene/:telefon', function (req, res) {
         let resultObject = {};
         resultObject.datum = terminKorResult.get('t').properties.datum;
         resultObject.imeUsluge = terminKorResult.get('t').properties.imeUsluge;
-        resultObject.potvrdjeno = terminKorResult.get(
-          't'
-        ).properties.potvrdjeno;
+        resultObject.potvrdjeno = terminKorResult.get('t').properties.potvrdjeno;
         resultObject.ime = terminKorResult.get('k').properties.ime;
         resultObject.idTermina = terminKorResult.get('t').identity.low;
         console.log(terminKorResult.get('t').properties);
@@ -1359,6 +1359,20 @@ app.get('/vratiTermineZubaraOdobrene/:telefon', function (req, res) {
       // Close the Driver
       //return driver.close();
     });
+});
+
+app.put('/obrisiTermin', async (req, res) => {
+  const idTermina = req.body.idTermina;
+  const session = driver.session();
+
+  const cypher =
+    'match (t:Termin) where ID(t)=' +
+    idTermina +
+    ' DETACH DELETE t';
+
+  await session.run(cypher);
+  session.close();
+  res.json('Termin je obrisan');
 });
 
 app.put('/novaUsluga', async (req, res) => {
@@ -1468,24 +1482,24 @@ app.put('/preporuciZubara', async (req, res) => {
 });
 
 app.put('/prihvatiStaziranje', async (req, res) => {
-  const idStudenta = req.body.idS;
-  const idZubara = req.body.idZ;
+  const usernameStudenta = req.body.usernameStudenta;
+  const usernameZubara = req.body.usernameZubara;
   let session = driver.session();
   let cypher1 =
-    'match(z:Zubar) where id(z)=' +
-    idZubara +
-    ' match(s:Student) where id(s)=' +
-    idStudenta +
-    ' create (s)-[r:STAZIRA_KOD]->(z)';
+    'match(z:Zubar) where z.username="' +
+    usernameZubara +
+    '" match(s:Student) where s.username="' +
+    usernameStudenta +
+    '" create (s)-[r:STAZIRA_KOD]->(z)';
   await session.run(cypher1);
   session.close();
   session = driver.session();
   let cypher2 =
-    'match(z:Zubar) where id(z)=' +
-    idZubara +
-    ' match(s:Student) where id(s)=' +
-    idStudenta +
-    ' match(s)-[r:ZAINTERESOVAN_ZA]->(z) delete r';
+    'match(z:Zubar) where z.username="' +
+    usernameZubara +
+    '" match(s:Student) where s.username="' +
+    usernameStudenta +
+    '" match(s)-[r:ZAINTERESOVAN_ZA]->(z) delete r';
   await session.run(cypher2);
   session.close();
   res.json('Staziranje prihvaceno');
