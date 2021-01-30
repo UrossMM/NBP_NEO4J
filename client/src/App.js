@@ -16,51 +16,65 @@ import Komentari from './components/dashboard/Komentari';
 import Zahtevi from './components/dashboard/ZahteviStudenata';
 import KorisnikPogled from './components/dashboard/KorisnikPogled';
 import StudentPogled from './components/dashboard/StudentPogled';
+import DodajTemu from "./components/forum/DodajTemu";
 import './App.css';
+import Tema from "./components/forum/Tema";
+import Forum from "./components/dashboard/Forum";
+import Usluge from "./components/dashboard/Usluge";
+
 
 const App = () => {
   return (
     <Provider store={store}>
       <Router>
         <Switch>
-          <Route exact path='/' component={Login} />
-          <Route exact path='/register' component={Register} />
-          <Route exact path='/register/student' component={RegisterStudent} />
+          <Route exact path="/" component={Login} />
+          <Route exact path="/register" component={Register} />
+          <Route exact path="/register/student" component={RegisterStudent} />
           <Route
             exact
-            path='/register/ordinacija'
+            path="/register/ordinacija"
             component={RegisterOrdinacija}
           />
-          <Route exact path='/dashboardZubar' component={Zubar} />
-          <Route exact path='/dodajUslugu/:username' component={Usluga} />
-          <Route exact path='/porukeZubar/:telefon' component={Poruke} />
-          <Route exact path='/urediProfil' component={UrediProfil} />
+          <Route exact path="/dashboardZubar" component={Zubar} />
+          <Route exact path="/dodajUslugu" component={Usluga} />
+          <Route exact path="/porukeZubar/:telefon" component={Poruke} />
+          <Route exact path="/urediProfil" component={UrediProfil} />
           <Route
             exact
-            path='/terminiZubar/:username/:telefon'
+            path="/terminiZubar/:username/:telefon"
             component={TerminiZubar}
           />
           <Route
             exact
-            path='/zubarPogled/:username/:usernameTrenutnog'
+            path="/zubarPogled/:username/:usernameTrenutnog"
             component={ZubarPogled}
           />
-          <Route exact path='/zubarKomentari/:telefon' component={Komentari} />
+          <Route exact path="/zubarKomentari/:telefon" component={Komentari} />
           <Route
             exact
-            path='/zahteviStudenata/:telefon/:usernameZubara'
+            path="/zahteviStudenata/:telefon/:usernameZubara"
             component={Zahtevi}
           />
           <Route
             exact
-            path='/korisnikPage/:telefonK'
+            path="/korisnikPage/:telefonK"
             component={KorisnikPogled}
           />
           <Route
             exact
-            path='/studentPage/:telefonS'
+            path="/studentPage/:telefonS"
             component={StudentPogled}
           />
+          <Route exact path="/zubarKomentari/:telefon" component={Komentari} />
+          <Route exact path="/dashboardZubar" component={Zubar} />
+          <Route exact path="/dodajUslugu" component={Usluga} />
+          <Route exact path="/porukeZubar/:telefon" component={Poruke} />
+          <Route exact path="/urediProfil" component={UrediProfil} />
+          <Route exact path="/dodajTemu" component={DodajTemu} />
+          <Route exact path="/tema/:id" component={Tema} />
+          <Route exact path="/forum" component={Forum} />
+          <Route exact path="/usluge" component={Usluge} />
         </Switch>
       </Router>
     </Provider>
