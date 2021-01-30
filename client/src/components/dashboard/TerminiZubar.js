@@ -85,7 +85,21 @@ class TerminiZubar extends Component {
   }
   brisi(vrednost) {
     let div = document.querySelector('.terzar' + vrednost);
-    div.remove();
+    let data = {
+      idTermina: this.state.terminiNeodobreni[vrednost].idTermina,
+    };
+    fetch('/obrisiTermin', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((data) => window.location.reload())
+      .catch((error) => {
+        console.error(error);
+      });
   }
   async funkcija(ind) {
     let obj = {

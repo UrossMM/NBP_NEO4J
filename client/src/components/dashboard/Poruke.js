@@ -1,56 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { MDBNotification, MDBContainer } from 'mdbreact';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import axios from 'axios';
-import { bindActionCreators } from 'redux';
+import {
+  MDBCard,
+  MDBCardBody,
+  MDBCardTitle,
+  MDBCardText,
+  MDBIcon,
+} from 'mdbreact';
 
-const Poruke = (props, { vratiSvePoruke }) => {
+const Poruke = (props) => {
   const [poruke, setPoruke] = useState([]);
-  // const datumi = [];
-  const fetchData = async () => {
-    const res = await axios.get(
-      '/vratiPrivatnePoruke/' + props.match.params.telefon
-    );
-    setPoruke(res.data);
-  };
   useEffect(() => {
-    fetchData();
+    fetch(`/vratiPrivatnePoruke/${props.match.params.telefon}`)
+      .then((res) => res.json())
+      .then((data) => setPoruke(data))
+      .catch((error) => {
+        console.error(error);
+      });
   }, []);
-  // useEffect(() => {
-  //   konvertuj();
-  //   console.log(tmp);
-  // }, [poruke]);
-  // const konvertuj = () => {
-  //   poruke.forEach((p) => {
-  //     let d = new Date(Date.parse(p.poruka.vreme));
-  //     setTmp([...tmp, 'terza']);
-  //   });
-  // };
+
   return (
-    <div className='terza3'>
-      <MDBContainer className='opa'>
-        {poruke &&
-          poruke.map((p) => (
-            <div>
-              {p.poruka.vreme}
-              <MDBNotification
-                show
-                fade
-                iconClassName='text-primary'
-                title={`${p.student.ime} ${p.student.prezime}`}
-                message={p.poruka.tekst}
-                // text={porukeNiz[0]}
-              />
-            </div>
-          ))}
-      </MDBContainer>
+    <div className='comm1'>
+      <h1>Privatne poruke</h1>
+      {poruke.map((p) => (
+        <MDBCard style={{ width: '39rem', marginTop: '2rem' }}>
+          <MDBCardBody>
+            <MDBCardTitle>
+              {' '}
+              {`${p.student.ime} ${p.student.prezime}`}
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <MDBIcon far icon='clock' />
+              &nbsp;&nbsp;
+              {new Date(Date.parse(p.poruka.vreme))
+                .toUTCString()
+                .split(' ')
+                .slice(0, 4)
+                .join(' ')}
+            </MDBCardTitle>
+            <MDBCardText>{p.poruka.tekst}</MDBCardText>
+          </MDBCardBody>
+        </MDBCard>
+      ))}
     </div>
   );
 };
 
-Poruke.propTypes = {
-  vratiSvePoruke: PropTypes.func.isRequired,
-};
-
-export default connect()(Poruke);
+export default Poruke;

@@ -14,6 +14,8 @@ import TerminiZubar from './components/dashboard/TerminiZubar';
 import ZubarPogled from './components/dashboard/ZubarPogled';
 import Komentari from './components/dashboard/Komentari';
 import Zahtevi from './components/dashboard/ZahteviStudenata';
+import KorisnikPogled from './components/dashboard/KorisnikPogled';
+import StudentPogled from './components/dashboard/StudentPogled';
 import './App.css';
 
 const App = () => {
@@ -44,7 +46,21 @@ const App = () => {
             component={ZubarPogled}
           />
           <Route exact path='/zubarKomentari/:telefon' component={Komentari} />
-          <Route exact path='/zahteviStudenata/:telefon' component={Zahtevi} />
+          <Route
+            exact
+            path='/zahteviStudenata/:telefon/:usernameZubara'
+            component={Zahtevi}
+          />
+          <Route
+            exact
+            path='/korisnikPage/:telefonK'
+            component={KorisnikPogled}
+          />
+          <Route
+            exact
+            path='/studentPage/:telefonS'
+            component={StudentPogled}
+          />
         </Switch>
       </Router>
     </Provider>

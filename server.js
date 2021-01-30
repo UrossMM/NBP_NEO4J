@@ -201,9 +201,9 @@ app.get('/pitanjaOdgovorioStudent/:telefonStudenta', async (req, res) => {
   const session = driver.session();
   let arrResult = [];
   let cypher =
-    'match(s:Student)-[:ODGOVORIO]->(o:Odgovor)-[:Odgovor_Na]->(p:Pitanje) WHERE s.telefon="' +
+    'match(s:Student)-[:ODGOVORIO]->(o:Odgovor)-[:Odgovor_Na]->(p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE s.telefon="' +
     telefonStudenta +
-    '" return p,o';
+    '" return p,o,k';
 
   session
     .run(cypher)
@@ -214,6 +214,7 @@ app.get('/pitanjaOdgovorioStudent/:telefonStudenta', async (req, res) => {
 
         object.pitanje = informationResult.get('p').properties.tekstPitanja;
         object.odgovor = informationResult.get('o').properties.odgovor;
+        object.ime = informationResult.get('k').properties.ime;
         console.log(object);
         arrResult.push(object);
       });
@@ -1028,6 +1029,7 @@ app.post('/odgovoriNaPitanje', function (req, res) {
   const session = driver.session();
   let idPitanja = req.body.idPitanja;
   let daLiJeZubar = req.body.daLiJeZubar;
+  //idPosiljaoca je telefon zubara ili korisnika ili studenta
   let idPosiljaoca = req.body.idPosiljaoca;
   let odgovor = req.body.odgovor;
   let cypher = '';
@@ -1091,9 +1093,9 @@ app.get('/vratiKomentareOZubaru/:telefon', function (req, res) {
           id: komentariKorisnikResult.get('kom').identity.low,
           ocena: komentariKorisnikResult.get('kom').properties.ocena,
           komentar: komentariKorisnikResult.get('kom').properties.komentar,
-          imeKorisnika:komentariKorisnikResult.get('k').properties.ime,
-          usernameKorisnika:komentariKorisnikResult.get('k').properties.username
-
+          imeKorisnika: komentariKorisnikResult.get('k').properties.ime,
+          usernameKorisnika: komentariKorisnikResult.get('k').properties
+            .username,
         };
 
         console.log(objekat);
@@ -1302,7 +1304,9 @@ app.get('/vratiTermineZubaraNeOdobrene/:telefon', function (req, res) {
         let resultObject = {};
         resultObject.datum = terminKorResult.get('t').properties.datum;
         resultObject.imeUsluge = terminKorResult.get('t').properties.imeUsluge;
-        resultObject.potvrdjeno = terminKorResult.get('t').properties.potvrdjeno;
+        resultObject.potvrdjeno = terminKorResult.get(
+          't'
+        ).properties.potvrdjeno;
         resultObject.ime = terminKorResult.get('k').properties.ime;
         resultObject.idTermina = terminKorResult.get('t').identity.low;
         console.log(terminKorResult.get('t').properties);
@@ -1340,7 +1344,9 @@ app.get('/vratiTermineZubaraOdobrene/:telefon', function (req, res) {
         let resultObject = {};
         resultObject.datum = terminKorResult.get('t').properties.datum;
         resultObject.imeUsluge = terminKorResult.get('t').properties.imeUsluge;
-        resultObject.potvrdjeno = terminKorResult.get('t').properties.potvrdjeno;
+        resultObject.potvrdjeno = terminKorResult.get(
+          't'
+        ).properties.potvrdjeno;
         resultObject.ime = terminKorResult.get('k').properties.ime;
         resultObject.idTermina = terminKorResult.get('t').identity.low;
         console.log(terminKorResult.get('t').properties);
@@ -1368,9 +1374,7 @@ app.put('/obrisiTermin', async (req, res) => {
   const session = driver.session();
 
   const cypher =
-    'match (t:Termin) where ID(t)=' +
-    idTermina +
-    ' DETACH DELETE t';
+    'match (t:Termin) where ID(t)=' + idTermina + ' DETACH DELETE t';
 
   await session.run(cypher);
   session.close();

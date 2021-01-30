@@ -65,7 +65,12 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
                 <i class='fas fa-fw fa-male'></i>
                 {k.ime} {k.prezime}
               </h3>
-              <MDBBtn color='default'>Pogledaj Profil</MDBBtn>
+              <MDBBtn
+                color='default'
+                onClick={() => history.push('/korisnikPage/' + k.telefon)}
+              >
+                Pogledaj Profil
+              </MDBBtn>
             </div>
           ))}
         {studenti &&
@@ -75,7 +80,12 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
                 <i class='fas fa-fw fa-user-graduate'></i>
                 {s.ime} {s.prezime}
               </h3>
-              <MDBBtn color='default'>Pogledaj Profil</MDBBtn>
+              <MDBBtn
+                color='default'
+                onClick={() => history.push('/studentPage/' + s.telefon)}
+              >
+                Pogledaj Profil
+              </MDBBtn>
             </div>
           ))}
       </div>
