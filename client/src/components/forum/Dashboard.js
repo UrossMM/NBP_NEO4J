@@ -102,18 +102,13 @@ class Dashboar extends Component {
                   <MDBRow>
                     <div className="excerpt">
                       <div className="brief">
-                        <a href={"/tema/" + el.pitanje.id} className="name">
+                        <a href={"/tema/" + el.idPitanja} className="name">
                           {el.pitanje.naslov} -
                         </a>{" "}
                         {el.korisnik.ime} {el.korisnik.prezime}
                       </div>
                       <div className="added-text">
                         {el.pitanje.tekstPitanja}
-                      </div>
-                      <div className="feed-footer">
-                        <a href="#!" className="like">
-                          <span>7 likes</span>
-                        </a>
                       </div>
                     </div>
                   </MDBRow>

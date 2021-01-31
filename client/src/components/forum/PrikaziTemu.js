@@ -14,19 +14,21 @@ class PrikaziTemu extends Component {
   state = {
     naslov: "",
     tekst: "",
-    komentari: [],
+    komentari: "",
   };
 
   componentDidMount() {
     fetch("/vratiPitanjeSaKomentarima/" + this.props.data.match.params.id, {
       method: "GET",
     })
-      .then((res) => res.json)
+      .then((res) => {
+        console.log(res.json);
+      })
       .then((data) => {
         this.setState({
-          naslov: data.naslov,
-          tekst: data.tekst,
-          komentari: data.komentari,
+          naslov: data.pitanje.naslov,
+          tekst: data.pitanje.tekstPitanja,
+          komentari: data.komentar.komentar,
         });
       });
   }
@@ -52,12 +54,9 @@ class PrikaziTemu extends Component {
       <MDBContainer className="mt-5">
         <MDBRow>
           <MDBCol md="12">
-            <h3>Naslov teme</h3>
+            <h3>{this.state.naslov}</h3>
             <div className="mt-6">
-              {" "}
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vero
-              inventore, iste quas libero eius? Vitae sint neque animi alias
-              sunt dolor, accusantium ducimus, non placeat voluptate.
+              {this.state.tekst}
             </div>
             <h5 className="mt-4">Postavljeni odgovori:</h5>
             <MDBCard
@@ -67,17 +66,14 @@ class PrikaziTemu extends Component {
               <MDBCardBody className="py-0">
                 <MDBRow>
                   <div className="excerpt">
-                    <div className="brief">
+                    {/* <div className="brief">
                       <a href="#!" className="name">
                         Lili Rose
                       </a>{" "}
                       posted on her page
-                    </div>
+                    </div> */}
                     <div className="added-text">
-                      Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                      Vero inventore, iste quas libero eius? Vitae sint neque
-                      animi alias sunt dolor, accusantium ducimus, non placeat
-                      voluptate.
+                      {this.state.komentari}
                     </div>
                   </div>
                 </MDBRow>
