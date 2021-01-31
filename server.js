@@ -707,9 +707,9 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
   session
     .run(cypher)
     .then((result) => {
-      let object = {};
+      // let object = {};
       result.records.map((informationResult) => {
-        // let object = {};
+        let object = {};
         object.komentar = informationResult.get("k").properties;
         object.pitanje = informationResult.get("p").properties;
         // object.odogovor = informationResult.get("o").properties;
@@ -717,7 +717,7 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
         resultArr.push(object);
       });
       // res.sendStatus(200);
-      res.json(object);
+      res.json(resultArr);
     })
     .catch((e) => {
       // Output the error

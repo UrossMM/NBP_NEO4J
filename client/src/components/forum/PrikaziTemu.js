@@ -14,21 +14,24 @@ class PrikaziTemu extends Component {
   state = {
     naslov: "",
     tekst: "",
-    komentari: "",
+    komentari: [],
   };
 
   componentDidMount() {
     fetch("/vratiPitanjeSaKomentarima/" + this.props.data.match.params.id, {
       method: "GET",
     })
-      .then((res) => {
-        console.log(res.json);
-      })
+      .then((res) => res.json())
       .then((data) => {
+        console.log(data);
+        let komentari = [];
+        data.forEach((el) => {
+          komentari.push(el.komentar.komentar);
+        });
         this.setState({
-          naslov: data.pitanje.naslov,
-          tekst: data.pitanje.tekstPitanja,
-          komentari: data.komentar.komentar,
+          naslov: data[0].pitanje.naslov,
+          tekst: data[0].pitanje.tekstPitanja,
+          komentari: komentari,
         });
       });
   }
@@ -47,6 +50,10 @@ class PrikaziTemu extends Component {
     } catch (err) {
       console.log(err);
     }
+
+   setTimeout(() => {
+    window.location.reload();
+   }, 1000) 
   };
 
   render() {
@@ -55,57 +62,24 @@ class PrikaziTemu extends Component {
         <MDBRow>
           <MDBCol md="12">
             <h3>{this.state.naslov}</h3>
-            <div className="mt-6">
-              {this.state.tekst}
-            </div>
+            <div className="mt-6">{this.state.tekst}</div>
             <h5 className="mt-4">Postavljeni odgovori:</h5>
-            <MDBCard
-              className="mt-2 mb-4 px-3 pt-2 pb-2"
-              style={{ fontWeight: 300 }}
-            >
-              <MDBCardBody className="py-0">
-                <MDBRow>
-                  <div className="excerpt">
-                    {/* <div className="brief">
-                      <a href="#!" className="name">
-                        Lili Rose
-                      </a>{" "}
-                      posted on her page
-                    </div> */}
-                    <div className="added-text">
-                      {this.state.komentari}
-                    </div>
-                  </div>
-                </MDBRow>
-              </MDBCardBody>
-            </MDBCard>
-            {/* {this.state.komentari.map((el, index) => (
+            {this.state.komentari.map((el, index) => (
               <MDBCard
-                className="my-3 px-5 pt-2 pb-2"
-                style={{ fontWeight: 300, maxWidth: 700, minWidth: 500 }}
+                className="mt-2 mb-4 px-3 pt-2 pb-2"
+                style={{ fontWeight: 300, maxWidth: 900, minWidth: 500 }}
               >
                 <MDBCardBody className="py-0">
                   <MDBRow>
                     <div className="excerpt">
-                      <div className="brief">
-                        <a href={"/tema/" + el.pitanje.id} className="name">
-                          {el.pitanje.naslov} -
-                        </a>{" "}
-                        {el.korisnik.ime} {el.korisnik.prezime}
-                      </div>
                       <div className="added-text">
-                        {el.pitanje.tekstPitanja}
-                      </div>
-                      <div className="feed-footer">
-                        <a href="#!" className="like">
-                          <span>7 likes</span>
-                        </a>
+                        {el}
                       </div>
                     </div>
                   </MDBRow>
                 </MDBCardBody>
               </MDBCard>
-            ))} */}
+            ))}
 
             <textarea
               id="odgovorZaTemu"
@@ -123,42 +97,6 @@ class PrikaziTemu extends Component {
           </MDBCol>
         </MDBRow>
       </MDBContainer>
-
-      //   <MDBContainer>
-      //     <MDBRow>
-      //       <MDBCol md="12">
-      //         <form>
-      //           <p className="h4 text-center mb-4">Dodaj novu temu</p>
-      //           <label htmlFor="defaultFormLoginEmailEx" className="black-text">
-      //             Naslov:
-      //           </label>
-      //           <input
-      //             type="text"
-      //             id="subject"
-      //             className="form-control"
-      //             placeholder="npr. krvarenje desni..."
-      //           />
-      //           <br />
-      //           <label
-      //             htmlFor="defaultFormLoginPasswordEx"
-      //             className="black-text"
-      //           >
-      //             Tekst:
-      //           </label>
-      //           <textarea
-      //             type="textarea"
-      //             id="subjectText"
-      //             className="form-control"
-      //           />
-      //           <div className="text-center mt-4">
-      //             <MDBBtn color="indigo" onClick={(e) => this.dodajTemu(e)}>
-      //               Dodaj
-      //             </MDBBtn>
-      //           </div>
-      //         </form>
-      //       </MDBCol>
-      //     </MDBRow>
-      //   </MDBContainer>
     );
   }
 }

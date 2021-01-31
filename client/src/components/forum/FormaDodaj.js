@@ -40,7 +40,9 @@ class FormaDodaj extends Component {
       tagoviZaFlitriranje: this.state.selektovaniTagovi,
     };
     try {
-      axios.post("http://localhost:5000/postaviPitanje", zaSlanje);
+      axios.post("http://localhost:5000/postaviPitanje", zaSlanje).then(() => {
+        window.location.href = "/forum";
+      });
     } catch (err) {
       console.log(err);
     }
@@ -117,7 +119,6 @@ class FormaDodaj extends Component {
               />
               <div className="text-center mt-4">
                 <MDBBtn
-                  href="/forum"
                   color="indigo"
                   onClick={(e) => this.dodajTemu(e)}
                 >
