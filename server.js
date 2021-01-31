@@ -4,15 +4,15 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-var driver = neo4j.driver(
-  'neo4j://localhost:7687',
-  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-);
+// var driver = neo4j.driver(
+//   'neo4j://localhost:7687',
+//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+// );
 
-//  const driver = neo4j.driver(
-//    'bolt://localhost:7687',
-//    neo4j.auth.basic('neo4j', 'pass')
-//  );
+ const driver = neo4j.driver(
+   'bolt://localhost:7687',
+   neo4j.auth.basic('neo4j', 'pass')
+ );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -449,21 +449,23 @@ app.get('/vratiSveTeme', function (req, res) {
     return self.indexOf(value) === index;
   }
 
-  const cypher = 'MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE RETURN p,k';
+  const cypher = 'MATCH (o:Odgovor)-[:Odgovor_Na]->(p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) RETURN p,k,count(o) as count';
   let pomocniNiz = [];
   let jsonOdgovor = [];
   session
     .run(cypher)
     .then((result) => {
       result.records.map((bundleRezultat) => {
-        console.log(bundleRezultat.get('p').properties);
-        console.log(bundleRezultat.get('k').properties);
+       // console.log(bundleRezultat.get('p').properties);
+        console.log(bundleRezultat.get('count').low);
         let objekat = {
           pitanje: bundleRezultat.get('p').properties,
+          idPitanja: bundleRezultat.get('p').identity.low,
           korisnik: bundleRezultat.get('k').properties,
+          brojOdgovora:bundleRezultat.get('count').low
         };
         jsonOdgovor.push(objekat);
-        console.log('-----');
+        console.log(objekat);
       });
 
       //res.json(nizKomentaraRezultat);
@@ -725,6 +727,7 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
 //-------KORISNIK----------
 
 //#region
+
 //Korisnik postavlja pitanje na forum
 app.post('/postaviPitanje', function (req, res) {
   const session = driver.session();
@@ -1057,7 +1060,7 @@ app.post('/odgovoriNaPitanje', function (req, res) {
       // result.records.map(terminResult=>{
       //   console.log( terminResult.get("t").properties );
       // })
-
+      console.log(result)
       res.sendStatus(200);
     })
     .catch((e) => {
