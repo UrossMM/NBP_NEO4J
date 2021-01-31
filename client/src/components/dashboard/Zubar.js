@@ -35,21 +35,21 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
         ime={podaciOrdinacije && podaciOrdinacije.ime}
         username={podaciZubar && podaciZubar.username}
       />
-      <div className='glavni'>
+      <div className="glavni">
         {zubari &&
           zubari.map((zubar) => (
-            <div className='glavnic'>
+            <div className="glavnic">
               <h3>
-                <i class='fas fa-fw fa-tooth'></i>
+                <i class="fas fa-fw fa-tooth"></i>
                 {zubar.ime} {zubar.prezime}
               </h3>
               <MDBBtn
-                color='default'
+                color="default"
                 onClick={() =>
                   history.push(
-                    '/zubarPogled/' +
+                    "/zubarPogled/" +
                       zubar.username +
-                      '/' +
+                      "/" +
                       podaciZubar.username
                   )
                 }
@@ -60,22 +60,32 @@ const Zubar = ({ zubar, ordinacija, zubari, korisnici, studenti }) => {
           ))}
         {korisnici &&
           korisnici.map((k) => (
-            <div className='glavnic'>
+            <div className="glavnic">
               <h3>
-                <i class='fas fa-fw fa-male'></i>
+                <i class="fas fa-fw fa-male"></i>
                 {k.ime} {k.prezime}
               </h3>
-              <MDBBtn color='default'>Pogledaj Profil</MDBBtn>
+              <MDBBtn
+                color="default"
+                onClick={() => history.push("/korisnikPage/" + k.telefon)}
+              >
+                Pogledaj Profil
+              </MDBBtn>
             </div>
           ))}
         {studenti &&
           studenti.map((s) => (
-            <div className='glavnic'>
+            <div className="glavnic">
               <h3>
-                <i class='fas fa-fw fa-user-graduate'></i>
+                <i class="fas fa-fw fa-user-graduate"></i>
                 {s.ime} {s.prezime}
               </h3>
-              <MDBBtn color='default'>Pogledaj Profil</MDBBtn>
+              <MDBBtn
+                color="default"
+                onClick={() => history.push("/studentPage/" + s.telefon)}
+              >
+                Pogledaj Profil
+              </MDBBtn>
             </div>
           ))}
       </div>

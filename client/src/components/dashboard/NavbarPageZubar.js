@@ -149,7 +149,9 @@ class NavbarPageZubar extends Component {
                       </Link>
                     </MDBDropdownItem>
                     <MDBDropdownItem>
-                      <Link to={`/zahteviStudenata/${this.props.telefon}`}>
+                      <Link
+                        to={`/zahteviStudenata/${this.props.telefon}/${this.props.username}`}
+                      >
                         Zahtevi studenata
                       </Link>
                     </MDBDropdownItem>

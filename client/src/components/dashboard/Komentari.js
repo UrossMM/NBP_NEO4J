@@ -12,9 +12,20 @@ const Komentari = (props) => {
   }, []);
   return (
     <div className='comm'>
-      <MDBListGroup style={{ width: '25rem' }}>
+      <MDBListGroup style={{ width: '45rem' }}>
+        <h1
+          style={{
+            textAlign: 'center',
+            marginBottom: '40px',
+            color: 'black',
+            fontWeight: '500',
+            textDecoration: 'underline',
+          }}
+        >
+          Komentari koji se odnose na mene
+        </h1>
         {komentari.map((k) => (
-          <MDBListGroupItem>
+          <MDBListGroupItem color='info'>
             <div className='d-flex w-100 justify-content-between'>
               <h5 className='mb-1'>
                 Komentarisao:&nbsp;&nbsp;{k.imeKorisnika}
