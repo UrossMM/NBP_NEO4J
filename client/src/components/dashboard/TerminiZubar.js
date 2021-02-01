@@ -3,6 +3,7 @@ import { DayPilotScheduler, DayPilot } from 'daypilot-pro-react';
 import axios from 'axios';
 import { MDBIcon, MDBBtn } from 'mdbreact';
 import nextId from 'react-id-generator';
+import { connect } from "react-redux";
 
 class TerminiZubar extends Component {
   constructor(props) {
@@ -11,15 +12,15 @@ class TerminiZubar extends Component {
     this.state = {
       usluge: [],
       terminiNeodobreni: [],
-      ime1: 'Danilo',
-      ime2: 'Marija',
-      startDate: '2021-01-23',
+      ime1: "Danilo",
+      ime2: "Marija",
+      startDate: "2021-01-23",
       days: 31,
-      scale: 'Day',
+      scale: "Day",
       eventHeight: 45,
       cellWidth: 40,
-      timeHeaders: [{ groupBy: 'Month' }, { groupBy: 'Day', format: 'd' }],
-      cellWidthSpec: 'Auto',
+      timeHeaders: [{ groupBy: "Month" }, { groupBy: "Day", format: "d" }],
+      cellWidthSpec: "Auto",
       resources: [
         // { name: 'Resource B', id: 'B' },
         // { name: 'Resource C', id: 'C' },
@@ -40,8 +41,8 @@ class TerminiZubar extends Component {
     };
   }
   componentDidMount() {
-    fetch('/vratiTermineZubaraOdobrene/' + this.props.match.params.telefon, {
-      method: 'GET',
+    fetch("/vratiTermineZubaraOdobrene/" + this.props.match.params.telefon, {
+      method: "GET",
     })
       .then((res) => res.json())
       .then((data) =>
@@ -53,7 +54,7 @@ class TerminiZubar extends Component {
             start: t.datum,
             end: t.datum,
             resource: t.imeUsluge,
-            backColor: '#ff2626',
+            backColor: "#ff2626",
           };
           this.setState((state) => ({
             events: [...state.events, zaTabelu],
@@ -61,7 +62,7 @@ class TerminiZubar extends Component {
         })
       );
     fetch(`/vratiTermineZubaraNeOdobrene/${this.props.match.params.telefon}`, {
-      method: 'GET',
+      method: "GET",
     })
       .then((res) => res.json())
       .then((data) => {
@@ -70,7 +71,7 @@ class TerminiZubar extends Component {
       });
 
     fetch(`/vratiUslugeZubara/${this.props.match.params.username}`, {
-      method: 'GET',
+      method: "GET",
     })
       .then((res) => res.json())
       .then((data) => {
@@ -84,14 +85,14 @@ class TerminiZubar extends Component {
       });
   }
   brisi(vrednost) {
-    let div = document.querySelector('.terzar' + vrednost);
+    let div = document.querySelector(".terzar" + vrednost);
     let data = {
       idTermina: this.state.terminiNeodobreni[vrednost].idTermina,
     };
-    fetch('/obrisiTermin', {
-      method: 'PUT',
+    fetch("/obrisiTermin", {
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     })
@@ -107,20 +108,25 @@ class TerminiZubar extends Component {
       telefon: this.props.match.params.telefon,
     };
     console.log(obj);
-    const res = await axios.put('/potvrdiTermin', obj);
+    const res = await axios.put("/potvrdiTermin", obj);
     // console.log(res);
     window.location.reload();
+  }
+
+  stampaj(e) {
+    console.log(this.props);
   }
 
   render() {
     var { ...config } = this.state;
     return (
       <div>
+        {/* <div onClick={(e) => this.stampaj(e)}>Djole</div> */}
         <DayPilotScheduler
           {...config}
           onEventMoved={(args) => {
             console.log(
-              'Event moved: ',
+              "Event moved: ",
               args.e.data.id,
               args.newStart,
               args.newEnd,
@@ -128,7 +134,7 @@ class TerminiZubar extends Component {
             );
           }}
           onTimeRangeSelected={(args) => {
-            DayPilot.Modal.prompt('Upisite naziv korisnika', '').then(
+            DayPilot.Modal.prompt("Upisite naziv korisnika", "").then(
               (modal) => {
                 this.scheduler.clearSelection();
                 if (!modal.result) {
@@ -141,43 +147,89 @@ class TerminiZubar extends Component {
                   end: args.end,
                   resource: args.resource,
                 });
-                console.log(modal.result);
-                var datum = args.start.toString('yyyy-MM-dd');
+                console.log(modal, args);
+                // console.log(modal.result, args);
+                var datum = args.start.toString("yyyy-MM-dd");
                 var telefon = this.props.match.params.telefon;
+                var imeUsluge = args.resource;
+                console.log(datum, telefon, imeUsluge);
+                const zaSlanje = {
+                  datum: datum,
+                  telefonZ: telefon,
+                  imeUsluge: imeUsluge,
+                  telefonK: this.props.user.telefon,
+                };
+                axios.post("/zakaziTermin", zaSlanje).then((res) => {
+                  console.log(res);
+                });
+                // console.log(params);
               }
             );
           }}
           onEventMoved={(args) =>
             this.scheduler.message(
-              'Promenili ste datum pregleda: ' + args.e.data.text
+              "Promenili ste datum pregleda: " + args.e.data.text
             )
           }
           ref={(component) => {
             this.scheduler = component && component.control;
           }}
         />
-        <h3 style={{ color: 'black', marginTop: '20px' }}>
+        {this.props.user.role === 'Zubar'?
+        <div> 
+        <h3 style={{ color: "black", marginTop: "20px" }}>
           Termini na cekanju
         </h3>
-        {this.state.terminiNeodobreni &&
+           {this.state.terminiNeodobreni &&
+            this.state.terminiNeodobreni.map((t, index) => (
+              <div className="terzica">
+                <div className={`terzar${index}`}>
+                  {t.datum}&nbsp;&nbsp;&nbsp;
+                  <MDBIcon icon="arrow-right" />
+                  &nbsp; Ime: &nbsp;
+                  {t.ime + ","}&nbsp;
+                  {"Opis:"} &nbsp;{t.imeUsluge}&nbsp; &nbsp;
+                  <MDBBtn
+                    color="success"
+                    size="sm"
+                    onClick={() => this.funkcija(index)}
+                  >
+                    Potvrdi
+                  </MDBBtn>
+                  <MDBBtn
+                    color="danger"
+                    size="sm"
+                    onClick={() => this.brisi(index)}
+                  >
+                    Odbij
+                  </MDBBtn>
+                  &nbsp;
+                </div>
+              </div>
+            ))}
+            </div> :
+            <div></div>
+        }
+
+        {/* {this.state.terminiNeodobreni &&
           this.state.terminiNeodobreni.map((t, index) => (
-            <div className='terzica'>
+            <div className="terzica">
               <div className={`terzar${index}`}>
                 {t.datum}&nbsp;&nbsp;&nbsp;
-                <MDBIcon icon='arrow-right' />
+                <MDBIcon icon="arrow-right" />
                 &nbsp; Ime: &nbsp;
-                {t.ime + ','}&nbsp;
-                {'Opis:'} &nbsp;{t.imeUsluge}&nbsp; &nbsp;
+                {t.ime + ","}&nbsp;
+                {"Opis:"} &nbsp;{t.imeUsluge}&nbsp; &nbsp;
                 <MDBBtn
-                  color='success'
-                  size='sm'
+                  color="success"
+                  size="sm"
                   onClick={() => this.funkcija(index)}
                 >
                   Potvrdi
                 </MDBBtn>
                 <MDBBtn
-                  color='danger'
-                  size='sm'
+                  color="danger"
+                  size="sm"
                   onClick={() => this.brisi(index)}
                 >
                   Odbij
@@ -185,10 +237,13 @@ class TerminiZubar extends Component {
                 &nbsp;
               </div>
             </div>
-          ))}
+          ))} */}
       </div>
     );
   }
 }
+const mapStateToProps = (state) => ({
+  user: state.auth.user,
+});
 
-export default TerminiZubar;
+export default connect(mapStateToProps, {})(TerminiZubar);
