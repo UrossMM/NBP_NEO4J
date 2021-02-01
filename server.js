@@ -128,6 +128,7 @@ app.post('/getLoginUser', async (req, res) => {
   let params = { username: username, sifra: sifra };
   let result = await session.run(cypher, params);
   if (result.records.length == 0) res.json('Nije pronadjen nijedan korisnik.');
+  result.records[0]._fields[0].properties.role = result.records[0]._fields[0].labels[0];
   res.json(result.records[0]._fields[0].properties);
 });
 
@@ -137,8 +138,12 @@ app.post('/getOrdinacija', async (req, res) => {
   const cypher =
     'match(n{username:$username})-[r:RADI]->(o:Ordinacija) return o';
   let result = await session.run(cypher, { username: username });
-  if (result.records.length == 0) res.json('Zubar ne radi u ordinaciji.');
-  res.json(result.records[0]._fields[0].properties);
+  console.log(result.records.length);
+  if (result.records.length === 0) {
+    res.json("Zubar ne radi u ordinaciji.");
+  } else {
+      res.json(result.records[0]._fields[0].properties);
+  }
 });
 
 app.post('/createOrdinacija', function (req, res) {
@@ -691,6 +696,37 @@ app.get('/pretraziPoImenu/:ime', async (req, res) => {
     });
 });
 
+app.get('/vratiPitanje/:idPitanja' , async(req, res) => {
+  const idPitanja = req.params.idPitanja;
+  const session = driver.session();
+  //MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
+  // let cypher =
+  //   'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
+  //   idPitanja +
+  //   ' return k,p,o';
+    let cypher =
+    'MATCH (p:Pitanje)  WHERE ID(p)=' +
+    idPitanja +
+    ' return p';
+  session
+    .run(cypher)
+    .then((result) => {
+      res.send(result.records[0]._fields[0].properties);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+})
+
 app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
   const idPitanja = req.params.idPitanja;
   const session = driver.session();
@@ -713,7 +749,49 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
         object.komentar = informationResult.get("k").properties;
         object.pitanje = informationResult.get("p").properties;
         // object.odogovor = informationResult.get("o").properties;
-        console.log(object);
+        // console.log(object);
+        resultArr.push(object);
+      });
+      // res.sendStatus(200);
+      res.json(resultArr);
+    })
+    .catch((e) => {
+      // Output the error
+      console.log(e);
+    })
+    .then(() => {
+      // Close the Session
+      return session.close();
+    })
+    .then(() => {
+      // Close the Driver
+      //return driver.close();
+    });
+});
+
+app.get('/vratiPitanjeSaKomentarimaIOdgovorima/:idPitanja', async (req, res) => {
+  const idPitanja = req.params.idPitanja;
+  const session = driver.session();
+  //MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
+  let cypher =
+    'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
+    idPitanja +
+    ' return k,p,o';
+    // let cypher =
+    // 'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)  WHERE ID(p)=' +
+    // idPitanja +
+    // ' return k,p';
+  let resultArr = [];
+  session
+    .run(cypher)
+    .then((result) => {
+      // let object = {};
+      result.records.map((informationResult) => {
+        let object = {};
+        object.komentar = informationResult.get("k").properties;
+        object.pitanje = informationResult.get("p").properties;
+        object.odogovor = informationResult.get("o").properties;
+        // console.log(object);
         resultArr.push(object);
       });
       // res.sendStatus(200);
@@ -1051,7 +1129,7 @@ app.post('/odgovoriNaPitanje', function (req, res) {
     cypher =
       'MATCH (p:Pitanje),(z:Zubar) WHERE ID(p)=' +
       idPitanja +
-      'AND z.telefon="' +
+      ' AND z.telefon="' +
       idPosiljaoca +
       '" CREATE (z)-[:ODGOVORIO]->(o:Odgovor {odgovor:"' +
       odgovor +

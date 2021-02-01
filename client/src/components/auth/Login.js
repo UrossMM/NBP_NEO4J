@@ -29,9 +29,15 @@ const Login = ({ login, logout }) => {
       username,
       sifra,
     };
-    login(zaSlanje);
-
-    history.push('/dashboardZubar');
+    let rola = login(zaSlanje);
+    rola.then((result) => {
+      if (result === 'Zubar') {
+        history.push("/dashboardZubar");
+      } else {
+        history.push("/usluge");
+      }
+    });
+    
   };
   return (
     <div className='terza1'>

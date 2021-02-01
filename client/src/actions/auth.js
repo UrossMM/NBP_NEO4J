@@ -53,6 +53,7 @@ export const login = (podaci) => async (dispatch) => {
       type: SVE_USLUGE,
       payload: res2.data,
     });
+    return res.data.role;
   } catch (err) {
     dispatch({
       type: GRESKA_PRI_LOGOVANJU,

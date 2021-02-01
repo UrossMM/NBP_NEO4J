@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { MDBContainer, MDBRow, MDBCard, MDBCardBody } from "mdbreact";
 import axios from "axios";
+import { connect } from "react-redux";
 
 class Dashboar extends Component {
   render() {
@@ -25,12 +26,21 @@ class Dashboar extends Component {
                     <div className="excerpt">
                       <div className="brief">
                         <div className="name">
-                          {el.usluga.naziv} -  {el.zubar.ime} {el.zubar.prezime}
+                          {el.usluga.naziv} -
+                          <a
+                            href={
+                              "/terminiZubar/" +
+                              el.zubar.username +
+                              "/" +
+                              el.zubar.telefon
+                            }
+                          >
+                            {" "}
+                            {el.zubar.ime} {el.zubar.prezime}{" "}
+                          </a>
                         </div>{" "}
                       </div>
-                      <div className="added-text">
-                        {el.usluga.opis}
-                      </div>
+                      <div className="added-text">{el.usluga.opis}</div>
                       <div className="feed-footer">
                         <span>Cena: {el.usluga.cena} RSD</span>
                       </div>
@@ -46,4 +56,8 @@ class Dashboar extends Component {
   }
 }
 
-export default Dashboar;
+const mapStateToProps = (state) => ({
+  user: state.auth.user,
+});
+
+export default connect(mapStateToProps, {})(Dashboar);

@@ -70,31 +70,31 @@ class NavbarPageZubar extends Component {
     return (
       <MDBContainer>
         <MDBNavbar
-          color='light-blue'
+          color="light-blue"
           dark
-          expand='md'
-          style={{ marginTop: '20px' }}
+          expand="md"
+          style={{ marginTop: "20px" }}
         >
           <MDBNavbarBrand>
-            <strong className='white-text'>
+            <strong className="white-text">
               {this.props.ime && this.props.ime}
             </strong>
           </MDBNavbarBrand>
-          <MDBNavbarToggler onClick={this.toggleCollapse('navbarCollapse3')} />
+          <MDBNavbarToggler onClick={this.toggleCollapse("navbarCollapse3")} />
           <MDBCollapse
-            id='navbarCollapse3'
+            id="navbarCollapse3"
             isOpen={this.state.collapseID}
             navbar
           >
             <MDBNavbarNav left>
               <MDBNavItem>
                 <MDBFormInline waves>
-                  <div className='md-form my-0'>
+                  <div className="md-form my-0">
                     <input
-                      className='form-control mr-sm-2'
-                      type='text'
-                      placeholder='Unesi ime'
-                      aria-label='Search'
+                      className="form-control mr-sm-2"
+                      type="text"
+                      placeholder="Unesi ime"
+                      aria-label="Search"
                       onChange={this.onChange}
                     />
                   </div>
@@ -102,40 +102,45 @@ class NavbarPageZubar extends Component {
               </MDBNavItem>
               <MDBNavItem>
                 <MDBBtn
-                  color='light-blue'
-                  className='dugmence'
+                  color="light-blue"
+                  className="dugmence"
                   onClick={() => this.klik(this.state.vrednost)}
                 >
                   Pretrazi
+                </MDBBtn>
+              </MDBNavItem>
+              <MDBNavItem>
+                <MDBBtn color="light-blue" href="/forum">
+                  Forum
                 </MDBBtn>
               </MDBNavItem>
             </MDBNavbarNav>
             <MDBNavbarNav right>
               <MDBNavItem>
                 <MDBNavLink
-                  className='waves-effect waves-'
+                  className="waves-effect waves-"
                   to={`/dodajUslugu/${this.props.username}`}
                 >
-                  <MDBIcon icon='tooth' className='mr-1' />
+                  <MDBIcon icon="tooth" className="mr-1" />
                   Dodaj uslugu
                 </MDBNavLink>
               </MDBNavItem>
               <MDBNavItem>
                 <MDBNavLink
-                  className='waves-effect waves-light'
+                  className="waves-effect waves-light"
                   to={`/porukeZubar/${this.props.telefon}`}
                 >
-                  <MDBIcon icon='envelope' className='mr-1' />
+                  <MDBIcon icon="envelope" className="mr-1" />
                   Poruke
                 </MDBNavLink>
               </MDBNavItem>
               <MDBNavItem>
                 <MDBDropdown>
                   <MDBDropdownToggle nav caret>
-                    <MDBIcon icon='user' className='mr-1' />
+                    <MDBIcon icon="user" className="mr-1" />
                     Profile
                   </MDBDropdownToggle>
-                  <MDBDropdownMenu className='dropdown-default' right>
+                  <MDBDropdownMenu className="dropdown-default" right>
                     <MDBDropdownItem>
                       <Link to={`/zubarKomentari/${this.props.telefon}`}>
                         Komentari
@@ -159,7 +164,7 @@ class NavbarPageZubar extends Component {
                       <Link to='/urediProfil'>Uredi profil</Link>
                     </MDBDropdownItem> */}
                     <MDBDropdownItem>
-                      <Link to='/'>Odjavi se</Link>
+                      <Link to="/">Odjavi se</Link>
                     </MDBDropdownItem>
                   </MDBDropdownMenu>
                 </MDBDropdown>

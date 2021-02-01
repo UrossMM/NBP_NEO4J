@@ -2,7 +2,7 @@ import React, { Fragment, Component } from "react";
 import NavbarKorisnik from "./NavbarKorisnik";
 import Dashboar from "./UslugeDashboard";
 
-class Forum extends Component {
+class Usluge extends Component {
   state = { pretraga: "", usluge: [] };
 
   promeniPretragu(value) {
@@ -18,12 +18,16 @@ class Forum extends Component {
       <Fragment>
         <NavbarKorisnik promeniPretragu={this.promeniPretragu.bind(this)} />
         <br></br>
-        <Dashboar pretraga={this.state.pretraga} usluge={this.state.usluge} />
+        <Dashboar         
+          data={this.props}        
+           pretraga={this.state.pretraga}       
+           usluge={this.state.usluge}       
+        />
       </Fragment>
     );
   }
 }
 
-Forum.propTypes = {};
+Usluge.propTypes = {};
 
-export default Forum;
+export default Usluge;
