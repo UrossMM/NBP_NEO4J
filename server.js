@@ -4,20 +4,20 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var neo4j = require('neo4j-driver');
 
-// var driver = neo4j.driver(
-//   'neo4j://localhost:7687',
-//   neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
-// );
+var driver = neo4j.driver(
+  'neo4j://localhost:7687',
+  neo4j.auth.basic('neo4j', 'noapas123') // ne brisi
+);
 
 //  const driver = neo4j.driver(
 //    'bolt://localhost:7687',
 //    neo4j.auth.basic('neo4j', 'pass')
 //  );
 
-  const driver = neo4j.driver(
-    "bolt://localhost:7687",
-    neo4j.auth.basic("neo4j", "djolecar123")
-  );
+// const driver = neo4j.driver(
+//   "bolt://localhost:7687",
+//   neo4j.auth.basic("neo4j", "djolecar123")
+// );
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -128,7 +128,8 @@ app.post('/getLoginUser', async (req, res) => {
   let params = { username: username, sifra: sifra };
   let result = await session.run(cypher, params);
   if (result.records.length == 0) res.json('Nije pronadjen nijedan korisnik.');
-  result.records[0]._fields[0].properties.role = result.records[0]._fields[0].labels[0];
+  result.records[0]._fields[0].properties.role =
+    result.records[0]._fields[0].labels[0];
   res.json(result.records[0]._fields[0].properties);
 });
 
@@ -140,9 +141,9 @@ app.post('/getOrdinacija', async (req, res) => {
   let result = await session.run(cypher, { username: username });
   console.log(result.records.length);
   if (result.records.length === 0) {
-    res.json("Zubar ne radi u ordinaciji.");
+    res.json('Zubar ne radi u ordinaciji.');
   } else {
-      res.json(result.records[0]._fields[0].properties);
+    res.json(result.records[0]._fields[0].properties);
   }
 });
 
@@ -377,24 +378,24 @@ app.get('/vratiZaposlene/:adresaOrdinacije', async (req, res) => {
 //-------FORUM--------
 //#region
 //Vraca sve komentare za odredjeno pitanje
-app.get("/vratiSveKomentare/:id", function (req, res) {
+app.get('/vratiSveKomentare/:id', function (req, res) {
   const session = driver.session();
   const idPitanja = req.params.id;
   const cypher =
-    "MATCH (p:Pitanje)<-[:KOMENTAR_NA]-(kom:Komentar)<-[:OSTAVIO]-(k:Korisnik) WHERE ID(p)=" +
+    'MATCH (p:Pitanje)<-[:KOMENTAR_NA]-(kom:Komentar)<-[:OSTAVIO]-(k:Korisnik) WHERE ID(p)=' +
     idPitanja +
-    " RETURN kom,k";
+    ' RETURN kom,k';
   let pomocniNiz = [];
   session
     .run(cypher)
     .then((result) => {
       result.records.map((bundleKomentarKorisnik) => {
-        console.log(bundleKomentarKorisnik.get("kom").properties);
-        console.log(bundleKomentarKorisnik.get("k").properties);
+        console.log(bundleKomentarKorisnik.get('kom').properties);
+        console.log(bundleKomentarKorisnik.get('k').properties);
         let komentarIkorisnik = {
-          idKorisnika: bundleKomentarKorisnik.get("k").identity.low,
-          imeKorisnika: bundleKomentarKorisnik.get("k").properties.ime,
-          komentar: bundleKomentarKorisnik.get("kom").properties.komentar,
+          idKorisnika: bundleKomentarKorisnik.get('k').identity.low,
+          imeKorisnika: bundleKomentarKorisnik.get('k').properties.ime,
+          komentar: bundleKomentarKorisnik.get('kom').properties.komentar,
         };
         pomocniNiz.push(komentarIkorisnik);
       });
@@ -460,9 +461,7 @@ app.get('/vratiSveTeme', function (req, res) {
     return self.indexOf(value) === index;
   }
 
-
-  const cypher = "MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) RETURN p,k";
-
+  const cypher = 'MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) RETURN p,k';
 
   let pomocniNiz = [];
   let jsonOdgovor = [];
@@ -472,9 +471,9 @@ app.get('/vratiSveTeme', function (req, res) {
       result.records.map((bundleRezultat) => {
         // console.log(bundleRezultat.get('p').properties);
         let objekat = {
-          pitanje: bundleRezultat.get("p").properties,
-          idPitanja: bundleRezultat.get("p").identity.low,
-          korisnik: bundleRezultat.get("k").properties,
+          pitanje: bundleRezultat.get('p').properties,
+          idPitanja: bundleRezultat.get('p').identity.low,
+          korisnik: bundleRezultat.get('k').properties,
         };
         jsonOdgovor.push(objekat);
         console.log(objekat);
@@ -500,32 +499,32 @@ app.get('/vratiSveTeme', function (req, res) {
     });
 });
 //prosledis izabrane tagove vrati sva pitanja koja imaju taj tag u sebi
-app.post("/vratiPitanjaSaTagovima", function (req, res) {
+app.post('/vratiPitanjaSaTagovima', function (req, res) {
   const session = driver.session();
   let tagoviZaFlitriranje = req.body.tagoviZaFiltriranje;
-  let dodatiTagovi = "";
+  let dodatiTagovi = '';
   //MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE 'd' IN p.tagoviZaFlitriranje OR 'a' IN p.tagoviZaFlitriranje RETURN p,k
   tagoviZaFlitriranje.map((tag) => {
     dodatiTagovi += "'" + tag + "' IN p.tagoviZaFlitriranje OR ";
   });
   dodatiTagovi = dodatiTagovi.slice(0, -3);
   const cypher =
-    "MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE " +
+    'MATCH (p:Pitanje)<-[:POSTAVIO]-(k:Korisnik) WHERE ' +
     dodatiTagovi +
-    "RETURN p,k";
+    'RETURN p,k';
   let jsonOdgovor = [];
   session
     .run(cypher)
     .then((result) => {
       result.records.map((bundleRezultat) => {
-        console.log(bundleRezultat.get("p").properties);
-        console.log(bundleRezultat.get("k").properties);
+        console.log(bundleRezultat.get('p').properties);
+        console.log(bundleRezultat.get('k').properties);
         let objekat = {
-          pitanje: bundleRezultat.get("p").properties,
-          korisnik: bundleRezultat.get("k").properties,
+          pitanje: bundleRezultat.get('p').properties,
+          korisnik: bundleRezultat.get('k').properties,
         };
         jsonOdgovor.push(objekat);
-        console.log("-----");
+        console.log('-----');
       });
 
       //res.json(nizKomentaraRezultat);
@@ -696,7 +695,7 @@ app.get('/pretraziPoImenu/:ime', async (req, res) => {
     });
 });
 
-app.get('/vratiPitanje/:idPitanja' , async(req, res) => {
+app.get('/vratiPitanje/:idPitanja', async (req, res) => {
   const idPitanja = req.params.idPitanja;
   const session = driver.session();
   //MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
@@ -704,10 +703,7 @@ app.get('/vratiPitanje/:idPitanja' , async(req, res) => {
   //   'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
   //   idPitanja +
   //   ' return k,p,o';
-    let cypher =
-    'MATCH (p:Pitanje)  WHERE ID(p)=' +
-    idPitanja +
-    ' return p';
+  let cypher = 'MATCH (p:Pitanje)  WHERE ID(p)=' + idPitanja + ' return p';
   session
     .run(cypher)
     .then((result) => {
@@ -725,7 +721,7 @@ app.get('/vratiPitanje/:idPitanja' , async(req, res) => {
       // Close the Driver
       //return driver.close();
     });
-})
+});
 
 app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
   const idPitanja = req.params.idPitanja;
@@ -735,7 +731,7 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
   //   'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
   //   idPitanja +
   //   ' return k,p,o';
-    let cypher =
+  let cypher =
     'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)  WHERE ID(p)=' +
     idPitanja +
     ' return k,p';
@@ -746,8 +742,8 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
       // let object = {};
       result.records.map((informationResult) => {
         let object = {};
-        object.komentar = informationResult.get("k").properties;
-        object.pitanje = informationResult.get("p").properties;
+        object.komentar = informationResult.get('k').properties;
+        object.pitanje = informationResult.get('p').properties;
         // object.odogovor = informationResult.get("o").properties;
         // console.log(object);
         resultArr.push(object);
@@ -769,47 +765,50 @@ app.get('/vratiPitanjeSaKomentarima/:idPitanja', async (req, res) => {
     });
 });
 
-app.get('/vratiPitanjeSaKomentarimaIOdgovorima/:idPitanja', async (req, res) => {
-  const idPitanja = req.params.idPitanja;
-  const session = driver.session();
-  //MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
-  let cypher =
-    'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
-    idPitanja +
-    ' return k,p,o';
+app.get(
+  '/vratiPitanjeSaKomentarimaIOdgovorima/:idPitanja',
+  async (req, res) => {
+    const idPitanja = req.params.idPitanja;
+    const session = driver.session();
+    //MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=6 return k,p,o
+    let cypher =
+      'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)<-[:Odgovor_Na]-(o:Odgovor)  WHERE ID(p)=' +
+      idPitanja +
+      ' return k,p,o';
     // let cypher =
     // 'MATCH (k:Komentar)-[:KOMENTAR_NA]->(p:Pitanje)  WHERE ID(p)=' +
     // idPitanja +
     // ' return k,p';
-  let resultArr = [];
-  session
-    .run(cypher)
-    .then((result) => {
-      // let object = {};
-      result.records.map((informationResult) => {
-        let object = {};
-        object.komentar = informationResult.get("k").properties;
-        object.pitanje = informationResult.get("p").properties;
-        object.odogovor = informationResult.get("o").properties;
-        // console.log(object);
-        resultArr.push(object);
+    let resultArr = [];
+    session
+      .run(cypher)
+      .then((result) => {
+        // let object = {};
+        result.records.map((informationResult) => {
+          let object = {};
+          object.komentar = informationResult.get('k').properties;
+          object.pitanje = informationResult.get('p').properties;
+          object.odogovor = informationResult.get('o').properties;
+          // console.log(object);
+          resultArr.push(object);
+        });
+        // res.sendStatus(200);
+        res.json(resultArr);
+      })
+      .catch((e) => {
+        // Output the error
+        console.log(e);
+      })
+      .then(() => {
+        // Close the Session
+        return session.close();
+      })
+      .then(() => {
+        // Close the Driver
+        //return driver.close();
       });
-      // res.sendStatus(200);
-      res.json(resultArr);
-    })
-    .catch((e) => {
-      // Output the error
-      console.log(e);
-    })
-    .then(() => {
-      // Close the Session
-      return session.close();
-    })
-    .then(() => {
-      // Close the Driver
-      //return driver.close();
-    });
-});
+  }
+);
 
 //#endregion
 
@@ -949,7 +948,7 @@ app.post('/ostaviKomentarNaPitanje', function (req, res) {
   let idKorisnika = req.body.idKorisnika;
   let komentar = req.body.komentar;
   const cypher =
-    "MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=" +
+    'MATCH (p:Pitanje),(k:Korisnik) WHERE ID(p)=' +
     idPitanja +
     " AND k.telefon='" +
     idKorisnika +
@@ -1151,7 +1150,7 @@ app.post('/odgovoriNaPitanje', function (req, res) {
       // result.records.map(terminResult=>{
       //   console.log( terminResult.get("t").properties );
       // })
-      console.log(result)
+      console.log(result);
       res.sendStatus(200);
     })
     .catch((e) => {
